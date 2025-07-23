@@ -21,11 +21,12 @@ class _DueloPageState extends State<DueloPage> {
 
   void _abrirCalculadora(BuildContext context) async {
     final int hpAtual = hpSelecionado == 1 ? hp1 : hp2;
+    print(hpAtual);
 
     final int? resultado = await showDialog<int>(
       context: context,
-      barrierDismissible: false,
-      builder: (_) => CalculadoraModal(hpAtual: hpAtual),
+      // barrierDismissible: false,
+      builder: (_) => CalculadoraModal(hpAtual: hpAtual, player: hpSelecionado),
     );
 
     if (resultado != null) {
@@ -136,6 +137,7 @@ class _DueloPageState extends State<DueloPage> {
       {'texto':'000','acao':()=> adicionarDigito('000')},
     ]);
   }
+  @override
   Widget build(BuildContext context) {
     return Container(
       color: const Color.fromARGB(255, 164, 218, 237),
@@ -263,11 +265,11 @@ class _DueloPageState extends State<DueloPage> {
                       child: LayoutBuilder(
                         builder: (context, constraints) {
                           // Calcula largura disponível do Expanded (sem considerar espaçamento)
-                          final larguraTotal = constraints.maxWidth;
+                          // final larguraTotal = constraints.maxWidth;
                           // Espaçamento entre botões no Wrap (8 * 2 espaços entre 3 botões)
-                          final espacamentoTotal = 8 * 2;
+                          // final espacamentoTotal = 8 * 2;
                           // Largura disponível por botão
-                          final larguraBotao = (larguraTotal - espacamentoTotal) / 3;
+                          // final larguraBotao = (larguraTotal - espacamentoTotal) / 3;
 
                           return Wrap(
                             spacing: 8,

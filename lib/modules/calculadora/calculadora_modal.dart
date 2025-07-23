@@ -1,12 +1,15 @@
 import 'package:app_duelo/modules/calculadora/passarinho_modal.dart';
 import 'package:app_duelo/ui/botao_metal_widget.dart';
+import 'package:app_duelo/ui/hp_widget.dart';
+import 'package:app_duelo/ui/passarinho_button_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:app_duelo/ui/botao_numero_widget.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
 class CalculadoraModal extends StatefulWidget {
   final int hpAtual;
-  const CalculadoraModal({super.key, required this.hpAtual});
+  final int player;
+  const CalculadoraModal({super.key, required this.hpAtual, required this.player});
 
   @override
   State<CalculadoraModal> createState() => _CalculadoraModalState();
@@ -18,11 +21,18 @@ class _CalculadoraModalState extends State<CalculadoraModal> {
   String _active = "Atacante";
   bool _flagMetal = false;
   bool _flagHonest = false;
-  int _numeroEscolhido = 0;
+  int _numeroEscolhidoA = 0;
+  int _numeroEscolhidoB = 0;
 
   int get _resultado {
     int a = int.tryParse(_a) ?? 0;
     int b = int.tryParse(_b) ?? 0;
+
+    a -= _numeroEscolhidoA;
+    b -= _numeroEscolhidoB;
+
+    a = a < 0 ? 0 : a;
+    b = b < 0 ? 0 : b;
 
     if (_flagMetal) {
       a += (b / 2).ceil();
@@ -101,11 +111,29 @@ class _CalculadoraModalState extends State<CalculadoraModal> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Text("HP Atual: ${widget.hpAtual}", style: TextStyle(fontSize: 20)),
-              SizedBox(height: 8),
-              Text("Resultado: $_resultado",
-                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)
+              SizedBox(height: 8,),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  HpWidget(
+                    texto: widget.hpAtual.toString(), 
+                    // corFundo: Color.fromARGB(255, 134, 238, 162),
+                    corFundo: widget.player == 1 
+                      ? const Color.fromARGB(255, 12, 117, 236).withOpacity(0.2)
+                      : const Color.fromARGB(255, 238, 142, 134),
+                    fontSize: 20
+                  ),
+                  SizedBox(width: 12),
+                  HpWidget(
+                    texto: "$_resultado", 
+                    corFundo: const Color.fromARGB(255, 216, 182, 119), 
+                    fontSize: 20
+                  ),
+                ],
               ),
+              // Text("Dano: $_resultado",
+              //   style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)
+              // ),
               SizedBox(height: 16,),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -115,7 +143,30 @@ class _CalculadoraModalState extends State<CalculadoraModal> {
                 ],
 
               ),
-              SizedBox(height: 20,),
+              SizedBox(height: 10,),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  PassarinhoButtonWidget(
+                    onValorSelecionado: (int novoValor) {
+                      setState(() {
+                        _numeroEscolhidoA = novoValor;
+                      });
+                    }, 
+                    valorSelecionado: _numeroEscolhidoA
+                  ),
+                  PassarinhoButtonWidget(
+                    onValorSelecionado: (int novoValor) {
+                      setState(() {
+                        _numeroEscolhidoB = novoValor;
+                      });
+                    }, 
+                    valorSelecionado: _numeroEscolhidoB
+                  ),
+                ],
+
+              ),
+              SizedBox(height: 10,),
               Center(
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -143,6 +194,15 @@ class _CalculadoraModalState extends State<CalculadoraModal> {
                       flex: 1,
                       child: Column(
                         children:[ 
+                          ElevatedButton.icon(
+                            onPressed: _limparCampoAtivo,
+                            icon: Icon(Icons.backspace),
+                            label: Text(""),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color.fromARGB(182, 250, 111, 111),
+                              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+                            ),
+                          ),
                           BotaoMetalWidget(
                             texto: "Metal",
                             cor: const Color.fromARGB(255, 255, 103, 174),
@@ -163,41 +223,36 @@ class _CalculadoraModalState extends State<CalculadoraModal> {
                               });
                             }
                           ),
-                          ElevatedButton(onPressed: _dobrarCampo, child: Text("x2")),
-                          ElevatedButton(onPressed: _dividirCampo, child: Text("/2")),
-                          ElevatedButton(onPressed: () async {
-                            final int? resultado = await showDialog<int>(
-                              context: context, 
-                              builder: (context) => const PassarinhoModal()
-                            );
-
-                            if (resultado != null) {
-                              setState(() {
-                                _numeroEscolhido = resultado;
-                              });
-                            }
-                          }, 
+                          ElevatedButton(
+                            onPressed: _dobrarCampo, 
                             style: ElevatedButton.styleFrom(
-                              
-                              backgroundColor: _numeroEscolhido != 0
-                              ? const Color.fromARGB(255, 171, 210, 242)
-                              : null,
-                              minimumSize: const Size(60, 40),
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                              alignment: Alignment.center,
+                              backgroundColor: const Color.fromARGB(133, 124, 221, 132)
                             ),
-                            child: _numeroEscolhido == 0
-                              ? Icon(LucideIcons.bird, size: 20,)
-                              : Text("$_numeroEscolhido",
-                                maxLines: 1,
-                                softWrap: false,
-                                overflow: TextOverflow.visible,
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontSize: 18
-                                ),
+                            child: Text("x2",
+                              maxLines: 1,
+                              softWrap: false,
+                              overflow: TextOverflow.visible,
                             )
                           ),
+                          ElevatedButton(
+                            onPressed: _dividirCampo, 
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color.fromARGB(133, 240, 173, 124)
+                            ),
+                            child: Text("/2",
+                              maxLines: 1,
+                              softWrap: false,
+                              overflow: TextOverflow.visible,
+                            )
+                          ),
+                          // PassarinhoButtonWidget(
+                          //   onValorSelecionado: (int novoValor) {
+                          //     setState(() {
+                          //       _numeroEscolhidoA = novoValor;
+                          //     });
+                          //   }, 
+                          //   valorSelecionado: _numeroEscolhidoA
+                          // ),
                         ]
                       ),
                     )
@@ -205,33 +260,8 @@ class _CalculadoraModalState extends State<CalculadoraModal> {
                 ),
               ),
 
-              SizedBox(height: 16,),
+              SizedBox(height: 32,),
 
-              Row(
-                children: [
-                  // BotaoMetalWidget(
-                  //   texto: "Metal",
-                  //   flagAtivo: _flagMetal, 
-                  //   onToggle: () {
-                  //     setState(() {
-                  //       _flagMetal =!_flagMetal;
-                  //     });
-                  //   }
-                  // ),
-                  
-                  const SizedBox(width: 12),
-                  ElevatedButton.icon(
-                    onPressed: _limparCampoAtivo,
-                    icon: Icon(Icons.backspace),
-                    label: Text("Apagar"),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color.fromARGB(180, 255, 82, 82),
-                      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 12),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 16,),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [

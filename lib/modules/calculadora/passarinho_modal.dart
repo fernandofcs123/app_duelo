@@ -11,7 +11,7 @@ class PassarinhoModal extends StatelessWidget {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       backgroundColor: Colors.white.withOpacity(0.95),
       child: SizedBox(
-        height: 400,
+        height: 460,
         width: 240,
         child: Padding(
           padding: const EdgeInsets.all(12),
@@ -20,10 +20,11 @@ class PassarinhoModal extends StatelessWidget {
             mainAxisSpacing: 6,
             crossAxisSpacing: 6,
             childAspectRatio: 2.2,
-            children: List.generate(14, (index) {
+            children: List.generate(13, (index) {
               final valor = index * 100;
               return ElevatedButton(
                 style: ElevatedButton.styleFrom(
+                  elevation: 2,
                   padding: EdgeInsets.zero,
                   backgroundColor: const Color.fromARGB(255, 171, 210, 242),
                   minimumSize: Size.zero,
