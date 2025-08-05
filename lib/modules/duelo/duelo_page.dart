@@ -1,5 +1,8 @@
 import 'package:app_duelo/modules/calculadora/calculadora_modal.dart';
+import 'package:app_duelo/modules/duelo/historico/historico_modal.dart';
+import 'package:app_duelo/ui/botao_atualizar_widget.dart';
 import 'package:app_duelo/ui/botao_numero_widget.dart';
+import 'package:app_duelo/ui/cores.dart';
 import 'package:flutter/material.dart';
 
 class DueloPage extends StatefulWidget {
@@ -113,6 +116,10 @@ class _DueloPageState extends State<DueloPage> {
     });
   }
 
+  void _historico(){
+    showDialog(context: context, builder: (_) => HistoricoModal());
+  }
+  
 
   final List<Map<String, dynamic>> botoes =[];
 
@@ -140,7 +147,8 @@ class _DueloPageState extends State<DueloPage> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: const Color.fromARGB(255, 164, 218, 237),
+      
+      color: Cores.corFundo,
       width: double.infinity,
       height: double.infinity,
       child: SafeArea(
@@ -276,8 +284,8 @@ class _DueloPageState extends State<DueloPage> {
                             runSpacing: 8,
                             children: botoes.map((botao) {
                               return SizedBox(
-                                width: 70,
-                                height: 60,
+                                width: 80,
+                                height: 70,
                                 child: BotaoNumeroWidget(
                                   onPressed: botao['acao'], 
                                   texto: botao['texto'],
@@ -302,7 +310,18 @@ class _DueloPageState extends State<DueloPage> {
                             width: double.infinity,
                             height: 60,
                             child: BotaoNumeroWidget(
+                              texto: "C",
+                              cor: const Color.fromARGB(255, 216, 182, 119),
+                              onPressed: limparValorDigitado,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          SizedBox(
+                            width: double.infinity,
+                            height: 60,
+                            child: BotaoNumeroWidget(
                               texto: "+",
+                              cor: const Color.fromARGB(133, 124, 221, 132),
                               onPressed: () => aplicarOperacao(true),
                             ),
                           ),
@@ -312,6 +331,7 @@ class _DueloPageState extends State<DueloPage> {
                             height: 60,
                             child: BotaoNumeroWidget(
                               texto: "-",
+                              cor: const Color.fromARGB(182, 250, 111, 111),
                               onPressed: () => aplicarOperacao(false),
                             ),
                           ),
@@ -321,34 +341,55 @@ class _DueloPageState extends State<DueloPage> {
                             height: 60,
                             child: BotaoNumeroWidget(
                               texto: "÷2",
+                              cor: Cores.metalmorph,
                               onPressed: dividir,
                             ),
                           ),
                           const SizedBox(height: 10),
-                          SizedBox(
-                            width: double.infinity,
-                            height: 60,
-                            child: BotaoNumeroWidget(
-                              texto: "C",
-                              onPressed: limparValorDigitado,
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          SizedBox(
-                            width: double.infinity,
-                            height: 60,
-                            child: BotaoNumeroWidget(
-                              texto: "R",
-                              onPressed: resetarHps,
-                            ),
-                          ),
                           
+                          // SizedBox(
+                          //   width: double.infinity,
+                          //   height: 60,
+                          //   child: BotaoNumeroWidget(
+                          //     texto: "R",
+                          //     onPressed: resetarHps,
+                          //   ),
+                          // ),
+                          SizedBox(
+                            width: double.infinity,
+                            height: 60,
+                            child: BotaoAtualizarWidget(onRefresh: resetarHps)
+                          ),
                         ],
                       ),
                     ),
                   ],
                 ),
-                ElevatedButton(onPressed: ()=> _abrirCalculadora(context), child: Text("Calc")),
+
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [ 
+                    ElevatedButton.icon(
+                      icon: const Icon(Icons.calculate, size: 22, color: Colors.white,),
+                      onPressed: ()=> _abrirCalculadora(context), 
+                      label: Text("Calculadora", 
+                      style: TextStyle(
+                        fontSize: 19, 
+                        fontWeight: FontWeight.bold),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.indigo,
+                        foregroundColor: Colors.white,
+                        elevation: 4,
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16)
+                        )
+                      ),
+                  ),
+                  ElevatedButton(onPressed: _historico, child: Text("Historico"))
+                  ]
+                ),
               ],
             ),
           ),
