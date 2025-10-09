@@ -14,11 +14,31 @@ class DueloPage extends StatefulWidget {
 }
 
 class _DueloPageState extends State<DueloPage> {
+  final int hpInicial = 8000;
+  String _valorReal = "";
+  bool _ultimoFoiZero = false;
   int hp1 = 8000;
   int hp2 = 8000;
   String valorDigitado ="0";
   int hpSelecionado = 1;
+  List<Map<String, dynamic>> historico = [];
 
+  void _atualizarDisplay() {
+    if (_valorReal.isEmpty) {
+      valorDigitado = "0";
+      return;
+    }
+
+    if (_valorReal.length <3) {
+      if (_ultimoFoiZero) {
+        valorDigitado = _valorReal;
+      }else {
+        valorDigitado = _valorReal + "00";
+      }
+    } else {
+      valorDigitado = _valorReal;
+    }
+  }
   
 
 
@@ -44,45 +64,109 @@ class _DueloPageState extends State<DueloPage> {
 
   }
 
-  void adicionarDigito (String digito){
+  void adicionarDigito(String digito) {
     setState(() {
-      if (valorDigitado == "0" && (digito == '00' || digito == '000')){
-        return;
-
-      }
-      String novoValor = valorDigitado == '0' ? digito : valorDigitado + digito;
-
-      int? valorInt = int.tryParse(novoValor);
-
-      if (valorInt ==null) {
+      // Ignora zeros múltiplos no início
+      if ((_valorReal.isEmpty|| _valorReal == "0") && (digito == '00' || digito == '000')) {
         return;
       }
 
-      if (valorInt > 99999) {
-        valorDigitado = '99999';
+      if (digito == "00" || digito == "000") {
+        String candidato = _valorReal.isEmpty ? digito : _valorReal + digito;
+        int val = int.tryParse(candidato) ?? 0;
+        if (val > 99999) {
+          _valorReal = "99999";
+          _ultimoFoiZero = false;
+          _atualizarDisplay();
+          return;
+        }
+        _valorReal = candidato;
+        _ultimoFoiZero = false;
+        _atualizarDisplay();
         return;
       }
+      if (digito == "0") {
+        if (_valorReal.isEmpty) {
+          _valorReal = '0';
+        } else {
+          _valorReal = _valorReal + "0";
+        }
+        _ultimoFoiZero = true;
 
-      valorDigitado = novoValor;
+        if ((int.tryParse(_valorReal) ?? 0) > 99999) {
+          _valorReal = "99999";
+          _ultimoFoiZero = false;
+        }
+        _atualizarDisplay();
+        return;
+      }
+      if (_valorReal == '0') {
+        _valorReal = digito;
+      } else {
+        _valorReal = _valorReal + digito;
+      }
+      _ultimoFoiZero = false;
+
+      if ((int.tryParse(_valorReal) ?? 0) > 99999) {
+        _valorReal = "99999";
+        _atualizarDisplay();
+        return;
+      }
+      _atualizarDisplay();
+
     });
   }
+
 
   void aplicarOperacao(bool somar) {
     int valor = int.tryParse(valorDigitado) ?? 0;
     setState(() {
       if (somar) {
         if (hpSelecionado ==1){
+          final int antes = hp1;
           hp1 += valor;
+          historico.add({
+            'hp': 'HP1',
+            'valor': valor,
+            'antes': antes,
+            'depois': hp1,
+            'tipo': '+',
+          });
         } else {
+          final int antes = hp2;
           hp2 += valor;
+          historico.add({
+            'hp': 'HP2',
+            'valor': valor,
+            'antes': antes,
+            'depois': hp2,
+            'tipo': '+',
+          });
         }
       } else {
         if (hpSelecionado == 1){
+          final int antes = hp1;
           hp1 = (hp1 -valor).clamp(0, double.infinity).toInt();
+          historico.add({
+            'hp': 'HP1',
+            'valor': valor,
+            'antes': antes,
+            'depois': hp1,
+            'tipo': '-',
+          });
         } else {
+          final int antes = hp2;
           hp2 = (hp2 -valor).clamp(0, double.infinity).toInt();
+          historico.add({
+            'hp': 'HP2',
+            'valor': valor,
+            'antes': antes,
+            'depois': hp2,
+            'tipo': '-',
+          });
         }
       }
+      _valorReal = "";
       valorDigitado ="0";
     });
   }
@@ -90,9 +174,27 @@ class _DueloPageState extends State<DueloPage> {
   void dividir(){
     setState(() {
       if (hpSelecionado ==1){
+        final int antes = hp1;
+        final String valor = "÷2";
         hp1 = (hp1 /2).ceil();
+        historico.add({
+          'hp':'HP1',
+          'valor': valor,
+          'antes': antes,
+          'depois':hp1,
+          'tipo': '',
+        });
       } else {
+        final int antes = hp2;
+        final String valor = "÷2";
         hp2 = (hp2 /2).ceil();
+        historico.add({
+          'hp':'HP2',
+          'valor': valor,
+          'antes': antes,
+          'depois':hp2,
+          'tipo': '',
+        });
       }
     });
   }
@@ -105,19 +207,21 @@ class _DueloPageState extends State<DueloPage> {
 
   void limparValorDigitado(){
     setState(() {
+      _valorReal = "";
       valorDigitado ="0";
     });
   }
 
   void resetarHps(){
     setState(() {
-      hp1 = 8000;
-      hp2 = 8000;
+      hp1 = hpInicial;
+      hp2 = hpInicial;
+      historico.clear();
     });
   }
 
   void _historico(){
-    showDialog(context: context, builder: (_) => HistoricoModal());
+    showDialog(context: context, builder: (_) => HistoricoModal(historico: historico, onReset: resetarHps,));
   }
   
 
@@ -244,20 +348,53 @@ class _DueloPageState extends State<DueloPage> {
                     border: Border.all(color: Colors.black54, width: 1),
                   ),
                   child: AnimatedSwitcher(
-                    duration: Duration(milliseconds: 80),
+                    duration: const Duration(milliseconds: 100),
                     transitionBuilder: (Widget child, Animation<double> animation) {
                       return ScaleTransition(scale: animation, child: child);
                     },
-                    child: Text(
-                      valorDigitado,
-                      key: ValueKey<String>(valorDigitado), // 👈 importante para animar mudança
-                      style: TextStyle(
-                        fontSize: 40,
-                        color: const Color.fromARGB(255, 0, 0, 0),
-                        decoration: TextDecoration.none,
-                      ),
+                    child: Builder(
+                      key: ValueKey<String>(valorDigitado),
+                      builder: (context) {
+                        // Separa os zeros provisórios (caso existam)
+                        String reais = valorDigitado;
+                        String zeros = "";
+
+                        // Se o valor termina com dois zeros E o usuário não digitou 3+ dígitos reais,
+                        // então esses dois zeros são provisórios
+                        if (valorDigitado.endsWith("00") && _valorReal.length < 3 && !_ultimoFoiZero) {
+                          reais = valorDigitado.substring(0, valorDigitado.length - 2);
+                          zeros = "00";
+                        }
+
+                        return RichText(
+                          textAlign: TextAlign.center,
+                          text: TextSpan(
+                            children: [
+                              TextSpan(
+                                text: reais,
+                                style: const TextStyle(
+                                  fontSize: 40,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.black,
+                                ),
+                              ),
+                              if (zeros.isNotEmpty)
+                                TextSpan(
+                                  text: zeros,
+                                  style: const TextStyle(
+                                    
+                                    fontSize: 40,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color.fromARGB(255, 63, 63, 63), // 👈 muda a cor aqui dos zeros provisórios
+                                  ),
+                                ),
+                            ],
+                          ),
+                        );
+                      },
                     ),
                   ),
+
                 ),
 
                 const SizedBox(height: 10,),
@@ -365,6 +502,7 @@ class _DueloPageState extends State<DueloPage> {
                     ),
                   ],
                 ),
+                SizedBox(height: 10,),
 
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -386,8 +524,27 @@ class _DueloPageState extends State<DueloPage> {
                           borderRadius: BorderRadius.circular(16)
                         )
                       ),
-                  ),
-                  ElevatedButton(onPressed: _historico, child: Text("Historico"))
+                    ),
+                    SizedBox(width: 10,),
+                    // ElevatedButton(onPressed: _historico, child: Text("Historico")),
+                    ElevatedButton.icon(
+                        icon: const Icon(Icons.list_alt, size: 22, color: Colors.white,),
+                        onPressed: _historico, 
+                        label: Text("Histórico", 
+                        style: TextStyle(
+                          fontSize: 19, 
+                          fontWeight: FontWeight.bold),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.indigo,
+                          foregroundColor: Colors.white,
+                          elevation: 4,
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16)
+                          )
+                        ),
+                    ),
                   ]
                 ),
               ],
