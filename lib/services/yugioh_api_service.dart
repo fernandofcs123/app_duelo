@@ -6,7 +6,6 @@ class YugiohApiService {
   Future<List<YugiohCard>> buscarCartas({
     String? nome,
     String? tipo,
-    bool edison = false,
   }) async {
     final params = <String, String>{};
 
@@ -16,10 +15,6 @@ class YugiohApiService {
 
     if (tipo != null && tipo.isNotEmpty && tipo != 'Todos') {
       params['type'] = tipo;
-    }
-
-    if (edison) {
-      params['banlist'] = 'Edison';
     }
 
     final uri = Uri.https(

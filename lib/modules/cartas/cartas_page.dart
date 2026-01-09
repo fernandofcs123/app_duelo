@@ -26,7 +26,7 @@ class _CartasPageState extends State<CartasPage> {
       _future = api.buscarCartas(
         nome: nome,
         tipo: tipo,
-        edison: edison,
+        // edison: edison,
       );
     });
   }
