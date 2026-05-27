@@ -1,6 +1,7 @@
 import 'package:app_duelo/modules/calculadora/calculadora_modal.dart';
 import 'package:app_duelo/modules/cartas/cartas_page.dart';
 import 'package:app_duelo/modules/duelo/historico/historico_modal.dart';
+import 'package:app_duelo/modules/duelo/historico/sorte_modal.dart';
 import 'package:app_duelo/ui/botao_atualizar_widget.dart';
 import 'package:app_duelo/ui/botao_numero_widget.dart';
 import 'package:app_duelo/ui/cores.dart';
@@ -238,6 +239,10 @@ class _DueloPageState extends State<DueloPage> {
 
   void _historico(){
     showDialog(context: context, builder: (_) => HistoricoModal(historico: historico, onReset: resetarHps,));
+  }
+
+  void _abrirSorte(){
+    showDialog(context: context, builder: (_) => SorteModal());
   }
 
   void _abrirCartas(){
@@ -533,7 +538,31 @@ class _DueloPageState extends State<DueloPage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [ 
-                      
+//#################################################################################################
+//#################################################################################################
+//#################################################################################################
+                      ElevatedButton(
+                        onPressed: _abrirSorte,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.indigo,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          padding: const EdgeInsets.all(14),
+                        ),
+                        child: const Icon(
+                          Icons.casino_outlined,
+                          size: 28,
+                          color: Colors.white,
+                        ),
+                      //   child: Image.asset(
+                      //     'assets/icons/historico.png',
+                      //     width: 28,
+                      //     height: 28,
+                      //     color: Colors.white,
+                      //   ),
+                      ), 
+                      SizedBox(width: 10,),
                       ElevatedButton(
                         onPressed: ()=> _abrirCalculadora(context),  
                         style: ElevatedButton.styleFrom(
@@ -584,7 +613,6 @@ class _DueloPageState extends State<DueloPage> {
                           color: Colors.white,
                         ),
                       ),
-                      
                     ]
                   ),
                 ],

@@ -76,12 +76,34 @@ class CartaCardWidget extends StatelessWidget {
 
         const SizedBox(height: 6),
 
-        Text(
-          card.desc,
-          maxLines: 4,
-          overflow: TextOverflow.ellipsis,
-          style: const TextStyle(fontSize: 13),
-        ),
+
+        if (card.atk != null) ...[
+          Text(
+            'ATK ${card.atk} / DEF ${card.def ?? '-'}',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+
+          const SizedBox(height: 6),
+
+          Text(
+            card.desc,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(fontSize: 13),
+          ),
+        ] else ...[
+          Text(
+            card.desc,
+            maxLines: 4,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(fontSize: 13),
+          ),
+        ],
 
         const SizedBox(height: 8),
 

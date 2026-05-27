@@ -1,9 +1,11 @@
+import 'package:app_duelo/models/yugioh_card.dart';
+import 'package:app_duelo/modules/cartas/detalhe_carta/card_details_page.dart';
+import 'package:app_duelo/modules/cartas/widgets/carta_card_widget.dart';
+import 'package:app_duelo/modules/cartas/widgets/filtro_cartas_widget.dart';
+import 'package:app_duelo/services/yugioh_api_service.dart';
 import 'package:flutter/material.dart';
-
-import '../../models/yugioh_card.dart';
-import '../../services/yugioh_api_service.dart';
-import 'widgets/filtro_cartas_widget.dart';
-import 'widgets/carta_card_widget.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter/widgets.dart';
 
 class CartasPage extends StatefulWidget {
   const CartasPage({super.key});
@@ -14,20 +16,59 @@ class CartasPage extends StatefulWidget {
 
 class _CartasPageState extends State<CartasPage> {
   final YugiohApiService api = YugiohApiService();
+  final ScrollController _scrollController = ScrollController();
 
   String nome = '';
   String tipo = 'Todos';
-  bool edison = true;
 
-  Future<List<YugiohCard>>? _future;
+  bool carregando = false;
+  bool mostrarFiltros = true;
+  List<YugiohCard> cartas = [];
 
-  void buscarCartas() {
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  Future<void> buscarCartas() async {
+    FocusScope.of(context).unfocus(); // 🔑 evita rebuild por teclado
+
+    setState(() => carregando = true);
+
+    final resultado = await api.buscarCartas(
+      nome: nome,
+      tipo: tipo,
+    );
+
     setState(() {
-      _future = api.buscarCartas(
-        nome: nome,
-        tipo: tipo,
-        // edison: edison,
-      );
+      cartas = resultado;
+      carregando = false;
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    _scrollController.addListener(() {
+      if (_scrollController.position.userScrollDirection ==
+          ScrollDirection.reverse) {
+        if (mostrarFiltros) {
+          setState(() {
+            mostrarFiltros = false;
+          });
+        }
+      }
+
+      if (_scrollController.position.userScrollDirection ==
+          ScrollDirection.forward) {
+        if (!mostrarFiltros) {
+          setState(() {
+            mostrarFiltros = true;
+          });
+        }
+      }
     });
   }
 
@@ -37,44 +78,49 @@ class _CartasPageState extends State<CartasPage> {
       appBar: AppBar(title: const Text("Cartas")),
       body: Column(
         children: [
-          FiltroCartasWidget(
-            onBuscar: buscarCartas,
-            onNomeChanged: (v) => nome = v,
-            onTipoChanged: (v) => tipo = v,
-            onEdisonChanged: (v) => edison = v,
+          ClipRect(
+            child: AnimatedSize(
+              duration: const Duration(milliseconds: 250),
+              curve: Curves.easeInOut,
+              child: mostrarFiltros
+                  ? Column(
+                      children: [
+                        FiltroCartasWidget(
+                          onBuscar: buscarCartas,
+                          onNomeChanged: (v) => nome = v,
+                          onTipoChanged: (v) => tipo = v,
+                        ),
+                      ],
+                    )
+                  : const SizedBox.shrink(),
+            ),
           ),
           Expanded(
-            child: _future == null
-                ? const Center(
-                    child: Text("Use os filtros e busque cartas"),
-                  )
-                : FutureBuilder<List<YugiohCard>>(
-                    future: _future,
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState ==
-                          ConnectionState.waiting) {
-                        return const Center(
-                            child: CircularProgressIndicator());
-                      }
-
-                      if (snapshot.hasError) {
-                        return Center(
-                          child: Text(snapshot.error.toString()),
-                        );
-                      }
-
-                      final cartas = snapshot.data!;
-
-                      return ListView.builder(
+            child: carregando
+                ? const Center(child: CircularProgressIndicator())
+                : cartas.isEmpty
+                    ? const Center(
+                        child: Text("Use os filtros e busque cartas"),
+                      )
+                    : ListView.builder(
+                        controller: _scrollController,
                         itemCount: cartas.length,
                         itemBuilder: (_, index) {
-                          return CartaCardWidget(
-                            card: cartas[index],
+                          final card = cartas[index];
+                          return GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      CardDetailsPage(card: card),
+                                ),
+                              );
+                            },
+                            child: CartaCardWidget(card: card),
                           );
                         },
-                      );
-                    },
-                  ),
+                      ),
           ),
         ],
       ),

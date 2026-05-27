@@ -1,18 +1,23 @@
 import 'package:flutter/material.dart';
 
-class FiltroCartasWidget extends StatelessWidget {
+class FiltroCartasWidget extends StatefulWidget {
   final VoidCallback onBuscar;
   final ValueChanged<String> onNomeChanged;
   final ValueChanged<String> onTipoChanged;
-  final ValueChanged<bool> onEdisonChanged;
 
   const FiltroCartasWidget({
     super.key,
     required this.onBuscar,
     required this.onNomeChanged,
     required this.onTipoChanged,
-    required this.onEdisonChanged,
   });
+
+  @override
+  State<FiltroCartasWidget> createState() => _FiltroCartasWidgetState();
+}
+
+class _FiltroCartasWidgetState extends State<FiltroCartasWidget> {
+  String _tipoSelecionado = 'Todos';
 
   @override
   Widget build(BuildContext context) {
@@ -27,34 +32,32 @@ class FiltroCartasWidget extends StatelessWidget {
                 labelText: "Nome da carta",
                 prefixIcon: Icon(Icons.search),
               ),
-              onChanged: onNomeChanged,
+              onChanged: widget.onNomeChanged,
             ),
-            const SizedBox(height: 8,),
+            const SizedBox(height: 8),
             DropdownButtonFormField<String>(
-              value: "Todos",
+              value: _tipoSelecionado,
               items: const [
-                DropdownMenuItem(value: "Todos", child: Text('Todos'),),
-                DropdownMenuItem(value: "Monster", child: Text('Monstro'),),
-                DropdownMenuItem(value: "Spell Card", child: Text('Spell'),),
-                DropdownMenuItem(value: "Trap Card", child: Text('Trap'),),
+                DropdownMenuItem(value: "Todos", child: Text('Todos')),
+                DropdownMenuItem(value: "Monster", child: Text('Monstro')),
+                DropdownMenuItem(value: "Spell Card", child: Text('Spell')),
+                DropdownMenuItem(value: "Trap Card", child: Text('Trap')),
               ],
-              onChanged: (v) => onTipoChanged(v!),
+              onChanged: (v) {
+                if (v == null) return;
+                setState(() {
+                  _tipoSelecionado = v;
+                });
+                widget.onTipoChanged(v);
+              },
               decoration: const InputDecoration(labelText: 'Tipo'),
             ),
-            const SizedBox(height: 8,),
-            SwitchListTile(
-              title: const Text('Modo Edison'),
-              subtitle:
-                  const Text('Somente cartas permitidas no formato Edison'),
-              value: true,
-              onChanged: onEdisonChanged,
-            ),
-            const SizedBox(height: 8,),
+            const SizedBox(height: 8),
             ElevatedButton.icon(
-              onPressed: onBuscar,
+              onPressed: widget.onBuscar,
               icon: const Icon(Icons.search),
               label: const Text('Buscar'),
-            )
+            ),
           ],
         ),
       ),

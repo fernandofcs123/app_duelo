@@ -4,6 +4,9 @@ class YugiohCard {
   final String name;
   final String type;
   final String desc;
+  final String? race;
+  final int? atk;
+  final int? def;
   final List<dynamic>? cardImages;
   final List<dynamic>? cardSets;
   final Map<String, dynamic>? banlistInfo;
@@ -12,6 +15,9 @@ class YugiohCard {
     required this.name,
     required this.type,
     required this.desc,
+    this.race,
+    this.atk,
+    this.def,
     this.cardImages,
     this.cardSets,
     this.banlistInfo,
@@ -22,6 +28,9 @@ class YugiohCard {
       name: json['name'],
       type: json['type'],
       desc: json['desc'],
+      race: json['race'],
+      atk: json['atk'],
+      def: json['def'],
       cardImages: json['card_images'],
       cardSets: json['card_sets'],
       banlistInfo: json['banlist_info'],
