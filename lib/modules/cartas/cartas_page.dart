@@ -19,6 +19,7 @@ class _CartasPageState extends State<CartasPage> {
   final ScrollController _scrollController = ScrollController();
 
   String nome = '';
+  String efeito = '';
   String tipo = 'Todos';
 
   bool carregando = false;
@@ -86,8 +87,16 @@ class _CartasPageState extends State<CartasPage> {
                   ? Column(
                       children: [
                         FiltroCartasWidget(
+                          onLimpar: () {
+                            setState(() {
+                              nome = '';
+                              tipo = 'Todos';
+                              cartas = [];
+                            });
+                          },
                           onBuscar: buscarCartas,
                           onNomeChanged: (v) => nome = v,
+                          onEfeitoChanged: (v) => efeito = v,
                           onTipoChanged: (v) => tipo = v,
                         ),
                       ],

@@ -6,12 +6,53 @@ class CardDetailsPage extends StatelessWidget {
 
   const CardDetailsPage({super.key, required this.card});
 
+void _showCardImage(BuildContext context){
+  showDialog(
+    context: context, 
+    barrierColor: Colors.black.withOpacity(0.95),
+    builder: (context) {
+      return Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: EdgeInsets.zero,
+        child: Stack(
+          children: [
+            Center(
+              child: InteractiveViewer(
+                minScale: 1.0,
+                maxScale: 5.0,
+                child: Image.network(
+                  card.imageUrl,
+                  fit: BoxFit.contain,
+                ),
+              ),
+            ),
+            Positioned(
+              top: 40,
+              right: 20,
+              child: IconButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                icon: const Icon(
+                  Icons.close,
+                  color: Colors.white,
+                  size: 32,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+  );
+}
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(card.name),
-      ),
+      // appBar: AppBar(
+      //   title: Text(card.name),
+      // ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
@@ -19,10 +60,15 @@ class CardDetailsPage extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Center(
-                child: Image.network(
-                  card.imageUrl,
-                  height: 300,
-                  fit: BoxFit.contain,
+                child: GestureDetector(
+                  onTap: () {
+                    _showCardImage(context);
+                  },
+                  child: Image.network(
+                    card.imageUrl,
+                    height: 300,
+                    fit: BoxFit.contain,
+                  ),
                 ),
               ),
               const SizedBox(height: 16,),
