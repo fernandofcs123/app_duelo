@@ -14,6 +14,7 @@ class FiltroToggleWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return FloatingActionButton.small(
       onPressed: onToggle,
+      backgroundColor: Colors.lightBlue.withOpacity(0.5),
       child: Icon(
         expandido
             ? Icons.keyboard_arrow_up

@@ -5,7 +5,9 @@ import '../models/yugioh_card.dart';
 class YugiohApiService {
   Future<List<YugiohCard>> buscarCartas({
     String? nome,
+    String? efeito,
     String? tipo,
+    bool edison = false,
   }) async {
     final params = <String, String>{};
 
@@ -13,7 +15,7 @@ class YugiohApiService {
       params['fname'] = nome;
     }
 
-    if (tipo != null && tipo.isNotEmpty && tipo != 'Todos') {
+    if (tipo != null && tipo.isNotEmpty && tipo != 'Todos' && tipo != 'Monster') {
       params['type'] = tipo;
     }
 
@@ -27,9 +29,31 @@ class YugiohApiService {
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
-      return (data['data'] as List)
-          .map((e) => YugiohCard.fromJson(e))
-          .toList();
+
+      List<YugiohCard> cartas = (data['data'] as List)
+        .map((e) => YugiohCard.fromJson(e))
+        .toList();
+
+      if (tipo == 'Monster') {
+        cartas = cartas.where((card) {
+          return card.type.toLowerCase().contains('monster');
+        }).toList();
+      }
+
+      if (edison) {
+        cartas = cartas.where((card) {
+          return card.isEdison;
+        }).toList();
+      }
+
+      if (efeito != null && efeito.trim().isNotEmpty) {
+        final busca = efeito.trim().toLowerCase();
+
+        cartas = cartas.where((card) {
+          return card.desc.toLowerCase().contains(busca);
+        }).toList();
+      }
+      return cartas;
     } else {
       throw Exception('Erro ao buscar cartas');
     }

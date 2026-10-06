@@ -10,37 +10,46 @@ void _showCardImage(BuildContext context){
   showDialog(
     context: context, 
     barrierColor: Colors.black.withOpacity(0.95),
-    builder: (context) {
-      return Dialog(
-        backgroundColor: Colors.transparent,
-        insetPadding: EdgeInsets.zero,
-        child: Stack(
-          children: [
-            Center(
-              child: InteractiveViewer(
-                minScale: 1.0,
-                maxScale: 5.0,
-                child: Image.network(
-                  card.imageUrl,
-                  fit: BoxFit.contain,
+    barrierDismissible: true,
+    builder: (dialogContext) {
+      return GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () {
+          Navigator.pop(dialogContext);
+        },
+        child: Material(
+          color: Colors.transparent,
+          child: Stack(
+            children: [
+              Center(
+                child: GestureDetector(
+                  onTap: () {},
+                  child: InteractiveViewer(
+                    minScale: 1.0,
+                    maxScale: 5.0,
+                    child: Image.network(
+                      card.imageUrl,
+                      fit: BoxFit.contain,
+                    ),
+                  ),
                 ),
               ),
-            ),
-            Positioned(
-              top: 40,
-              right: 20,
-              child: IconButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                icon: const Icon(
-                  Icons.close,
-                  color: Colors.white,
-                  size: 32,
+              Positioned(
+                top: 40,
+                right: 20,
+                child: IconButton(
+                  onPressed: () {
+                    Navigator.pop(dialogContext);
+                  },
+                  icon: const Icon(
+                    Icons.close,
+                    color: Colors.white,
+                    size: 32,
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       );
     }

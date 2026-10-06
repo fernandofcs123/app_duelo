@@ -21,6 +21,7 @@ class _CartasPageState extends State<CartasPage> {
   String nome = '';
   String efeito = '';
   String tipo = 'Todos';
+  bool edison = false;
 
   bool carregando = false;
   bool mostrarFiltros = true;
@@ -92,12 +93,14 @@ class _CartasPageState extends State<CartasPage> {
                               nome = '';
                               tipo = 'Todos';
                               cartas = [];
+                              edison = false;
                             });
                           },
                           onBuscar: buscarCartas,
                           onNomeChanged: (v) => nome = v,
                           onEfeitoChanged: (v) => efeito = v,
                           onTipoChanged: (v) => tipo = v,
+                          onEdisonChanged: (v) => edison = v,
                         ),
                       ],
                     )

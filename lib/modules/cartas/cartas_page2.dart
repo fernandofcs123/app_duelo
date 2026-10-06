@@ -21,6 +21,7 @@ class _CartasPageState extends State<CartasPage2> {
   String tipo = 'Todos';
 
   bool carregando = false;
+  bool edison = false;
 
   // Controla se os filtros estão abertos ou fechados
   bool filtrosExpandidos = true;
@@ -34,7 +35,9 @@ class _CartasPageState extends State<CartasPage2> {
 
     final resultado = await api.buscarCartas(
       nome: nome,
+      efeito: efeito,
       tipo: tipo,
+      edison: edison,
     );
 
     setState(() {
@@ -62,14 +65,17 @@ class _CartasPageState extends State<CartasPage2> {
                       onLimpar: () {
                         setState(() {
                           nome = '';
+                          efeito = '';
                           tipo = 'Todos';
                           cartas = [];
+                          edison = false;
                         });
                       },
                         onBuscar: buscarCartas,
                         onNomeChanged: (v) => nome = v,
                         onEfeitoChanged: (v) => efeito = v,
                         onTipoChanged: (v) => tipo = v,
+                        onEdisonChanged: (v) => edison = v,
                       )
                     : const SizedBox.shrink(),
               ),
