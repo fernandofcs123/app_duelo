@@ -1,53 +1,87 @@
+
 import 'dart:convert';
+
 import 'package:flutter/services.dart';
 
-class EdisonBanlist {
-  final Set<String> forbidden;
-  final Set<String> limited;
-  final Set<String> semiLimited;
-
-  EdisonBanlist({
-    required this.forbidden,
-    required this.limited,
-    required this.semiLimited,
-  });
-
-  String _normalize(String name) {
-    return name.trim().toLowerCase();
-  }
-
-  /// Retorna quantas cópias podem ser usadas no Edison
-  int getLimit(String cardName) {
-    final n = _normalize(cardName);
-
-    if (forbidden.any((c) => _normalize(c) == n)) return 0;
-    if (limited.any((c) => _normalize(c) == n)) return 1;
-    if (semiLimited.any((c) => _normalize(c) == n)) return 2;
-
-    return 3;
-  }
-
-  bool isEdisonBanned(String cardName) {
-    return forbidden.contains(cardName);
-  }
-}
+import 'edison_card_pool_service.dart';
 
 class EdisonBanlistService {
-  static EdisonBanlist? _cache;
+  static Set<String>? _proibidas;
+  static Map<String, int>? _limites;
+  static bool _carregado = false;
 
-  static Future<EdisonBanlist> load() async {
-    if (_cache != null) return _cache!;
+  static Future<void> carregar() async {
+    if (_carregado) return;
 
-    final jsonStr =
-        await rootBundle.loadString('assets/edison_banlist.json');
-    final data = json.decode(jsonStr);
+    await EdisonCardPoolService.carregar();
 
-    _cache = EdisonBanlist(
-      forbidden: Set<String>.from(data['forbidden']),
-      limited: Set<String>.from(data['limited']),
-      semiLimited: Set<String>.from(data['semi_limited']),
+    final jsonTexto = await rootBundle.loadString(
+      'assets/edison_banlist.json',
     );
 
-    return _cache!;
+    final dados = jsonDecode(jsonTexto) as Map<String, dynamic>;
+
+    _proibidas = (dados['forbidden'] as List<dynamic>? ?? [])
+        .map((nome) => nome.toString())
+        .toSet();
+
+    final csv = await rootBundle.loadString(
+      'assets/edison_banlist.csv',
+    );
+
+    final limites = <String, int>{};
+
+    for (final linha in csv.split(RegExp(r'\r?\n'))) {
+      final partes = linha.trim().split(',');
+
+      if (partes.length != 2) continue;
+
+      final codigo = partes[0].trim();
+      final quantidade = int.tryParse(partes[1].trim());
+
+      if (RegExp(r'^\d{8}$').hasMatch(codigo) &&
+          quantidade != null &&
+          (quantidade == 1 || quantidade == 2)) {
+        limites[codigo] = quantidade;
+      }
+    }
+
+    _limites = limites;
+    _carregado = true;
+  }
+
+  // Retorna null se a carta não for Edison.
+  // Retorna 0, 1, 2 ou 3 se for Edison.
+  static int? limite({
+    required String codigo,
+    required String nome,
+  }) {
+    if (!_carregado) {
+      throw StateError(
+        'Carregue EdisonBanlistService antes de consultar os limites.',
+      );
+    }
+
+    // 1. Proibidas: comparação exata do nome.
+    if (_proibidas!.contains(nome)) {
+      return 0;
+    }
+
+    final codigoNormalizado = codigo.trim().padLeft(8, '0');
+
+    // 2. Cartas limitadas ou semilimitadas.
+    final limiteCsv = _limites![codigoNormalizado];
+
+    if (limiteCsv != null) {
+      return limiteCsv;
+    }
+
+    // 3. Carta Edison sem restrição específica.
+    if (EdisonCardPoolService.contem(codigoNormalizado)) {
+      return 3;
+    }
+
+    // 4. Carta fora do formato Edison.
+    return null;
   }
 }

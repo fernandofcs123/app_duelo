@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:app_duelo/services/edison_card_pool_service.dart';
+import 'package:app_duelo/services/edison_banlist_service.dart';
 import 'package:http/http.dart' as http;
 import '../models/yugioh_card.dart';
 
@@ -81,8 +81,10 @@ class YugiohApiService {
       }
 
       if (edison) {
+        await EdisonBanlistService.carregar();
+
         cartas = cartas.where((card) {
-          return EdisonCardPoolService.contem(card.id);
+          return card.isEdison;
         }).toList();
       }
 

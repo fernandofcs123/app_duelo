@@ -1,5 +1,6 @@
-import 'package:app_duelo/services/edison_card_pool_service.dart';
+
 import 'package:flutter/material.dart';
+
 import '../../../models/yugioh_card.dart';
 import '../../../services/edison_banlist_service.dart';
 
@@ -17,77 +18,98 @@ class CartaCardWidget extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
       ),
       clipBehavior: Clip.antiAlias,
-      child: _cardImage(),
+      child: FutureBuilder<void>(
+        future: EdisonBanlistService.carregar(),
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return const Center(
+              child: Text('Erro ao carregar banlist'),
+            );
+          }
+
+          if (snapshot.connectionState != ConnectionState.done) {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+
+          return _cardImage();
+        },
+      ),
     );
   }
 
-  // ================= IMAGE =================
   Widget _cardImage() {
+    final isEdison = card.isEdison;
+    final limite = card.edisonLimit;
+
     return AspectRatio(
       aspectRatio: 0.68,
-      child: Image.network(
-        card.imageUrl,
-        // width: 90,
-        // height: 130,
-        fit: BoxFit.cover,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          Image.network(
+            card.imageUrl,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              return const Center(
+                child: Icon(Icons.broken_image, size: 40),
+              );
+            },
+          ),
+
+          // Identificação do formato Edison.
+          Positioned(
+            top: 25,
+            left: 4,
+            child: _badge(
+              texto: isEdison ? 'EDISON' : 'TCG',
+              cor: isEdison ? Colors.green : Colors.red,
+            ),
+          ),
+
+          // Limite de cópias: aparece somente para cartas Edison
+          // proibidas, limitadas ou semilimitadas.
+          if (isEdison && limite != null && limite < 3)
+            Positioned(
+              top: 47,
+              left: 4,
+              child: _badge(
+                texto: switch (limite) {
+                  0 => '0',
+                  1 => '1',
+                  2 => '2',
+                  _ => '',
+                },
+                cor: limite == 0 ? Colors.red : Colors.indigo,
+              ),
+            ),
+        ],
       ),
     );
   }
-  // ================= BADGES =================
 
-  Widget _edisonBadge() {
-    final isEdison = EdisonCardPoolService.contem(card.id);
-
-  return Container(
-    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-    decoration: BoxDecoration(
-      color: isEdison ? Colors.green : Colors.red,
-      borderRadius: BorderRadius.circular(12),
-    ),
-    child: Text(
-      isEdison ? 'Edison' : 'Não Edison',
-      style: const TextStyle(
-        color: Colors.white,
-        fontSize: 12,
-        fontWeight: FontWeight.bold,
+  Widget _badge({
+    required String texto,
+    required Color cor,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 8,
+        vertical: 4,
       ),
-    ),
-  );
-}
-
-
-
-  Widget _limitBadge() {
-  if (!EdisonCardPoolService.contem(card.id)) return const SizedBox();
-
-  return FutureBuilder<EdisonBanlist>(
-    future: EdisonBanlistService.load(),
-    builder: (context, snapshot) {
-      if (!snapshot.hasData) return const SizedBox();
-
-      final banlist = snapshot.data!;
-      final limit = banlist.getLimit(card.name);
-
-      if (limit >= 3) return const SizedBox();
-
-      return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        decoration: BoxDecoration(
-          color: limit == 0 ? Colors.red : Colors.indigo,
-          borderRadius: BorderRadius.circular(12),
+      decoration: BoxDecoration(
+        color: cor,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text(
+        texto,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 10,
+          fontWeight: FontWeight.bold,
         ),
-        child: Text(
-          'Limite $limit',
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 12,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      );
-    },
-  );
-}
-
-
+      ),
+    );
+  }
 }

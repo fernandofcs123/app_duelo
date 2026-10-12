@@ -1,3 +1,5 @@
+import 'package:app_duelo/services/edison_banlist_service.dart';
+
 class YugiohCard {
   final String name;
   final String type;
@@ -44,18 +46,13 @@ class YugiohCard {
           ? cardImages!.first['image_url']
           : '';
   // ================= BANLIST =================
-  int get tcgLimit {
-    if (banlistInfo == null) return 3;
+  int? get edisonLimit {
+    return EdisonBanlistService.limite(
+      codigo: id.trim().padLeft(8, '0'), 
+      nome: name
+    ); 
 
-    switch (banlistInfo!['ban_tcg']) {
-      case 'Forbidden':
-        return 0;
-      case 'Limited':
-        return 1;
-      case 'Semi-Limited':
-        return 2;
-      default:
-        return 3;
-    }
-  }
+  } 
+  
+  bool get isEdison => edisonLimit != null;
 }

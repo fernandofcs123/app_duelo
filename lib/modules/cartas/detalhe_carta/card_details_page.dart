@@ -169,7 +169,7 @@ void _showCardImage(BuildContext context){
   }
 
   Widget _buildLimitInfo(YugiohCard card){
-    final limit = card.tcgLimit;
+    final limit = card.edisonLimit;
 
     String text;
     switch (limit) {

@@ -102,13 +102,7 @@ class _FiltroCartasWidgetState extends State<FiltroCartasWidget> {
                     onChanged: widget.onNomeChanged,
                   ),
                 ),
-                const SizedBox(width: 4),
-                IconButton(
-                  tooltip: 'Identificar carta pela câmera',
-                  icon: const Icon(Icons.camera_alt),
-                  onPressed: widget.onCamera, 
-                ),
-                const SizedBox(width: 4),
+                const SizedBox(width: 8),
 
                 Expanded(
                   child: TextField(
@@ -218,7 +212,13 @@ class _FiltroCartasWidgetState extends State<FiltroCartasWidget> {
                 IconButton.filled(
                   tooltip: 'Buscar',
                   onPressed: widget.onBuscar, 
-                  icon: const Icon(Icons.search),
+                  icon: const Icon(
+                    Icons.search,
+                    color: Color.fromARGB(234, 39, 38, 136),
+                  ),
+                  style: IconButton.styleFrom(
+                    backgroundColor: Colors.lightBlue.withOpacity(0.5),
+                  ),
                 ),
               ],
             ),

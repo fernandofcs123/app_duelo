@@ -18,6 +18,8 @@ class EdisonCardPoolService {
   }
 
   static bool contem(String codigo) {
-    return _codigos?.contains(codigo) ?? false;
+    final codigoNormaalizado = codigo.trim().padLeft(8,'0');
+
+    return _codigos?.contains(codigoNormaalizado) ?? false;
   }
 }

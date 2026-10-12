@@ -5,6 +5,7 @@ import 'package:app_duelo/modules/cartas/widgets/carta_card_widget.dart';
 import 'package:app_duelo/modules/cartas/widgets/filtro_cartas_widget.dart';
 import 'package:app_duelo/modules/cartas/widgets/filtro_toggle_widget.dart';
 import 'package:app_duelo/services/card_recognition_service.dart';
+import 'package:app_duelo/services/edison_banlist_service.dart';
 import 'package:app_duelo/services/edison_card_pool_service.dart';
 import 'package:app_duelo/services/yugioh_api_service.dart';
 import 'package:flutter/material.dart';
@@ -114,6 +115,8 @@ class _CartasPageState extends State<CartasPage> {
   List<YugiohCard> cartas = [];
 
   Future<void> buscarCartas() async {
+    await EdisonBanlistService.carregar();
+
     FocusScope.of(context).unfocus();
 
     setState(() => carregando = true);
@@ -241,6 +244,19 @@ class _CartasPageState extends State<CartasPage> {
               },
             ),
           ),
+
+          if (filtrosExpandidos)
+            Positioned(
+              top: 140,
+              right: 16,
+              child: FloatingActionButton(
+                heroTag: 'botaoCamera',
+                mini: true,
+                onPressed: identificarCarta,
+                backgroundColor: Colors.lightBlue.withOpacity(0.5),
+                child: const Icon(Icons.camera_alt),
+              ),
+            ),
         ],
       ),
     );
