@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:app_duelo/modules/calculadora/calculadora_modal.dart';
 import 'package:app_duelo/modules/cartas/cartas_page.dart';
 import 'package:app_duelo/modules/duelo/historico/historico_modal.dart';
@@ -6,6 +8,7 @@ import 'package:app_duelo/ui/botao_atualizar_widget.dart';
 import 'package:app_duelo/ui/botao_numero_widget.dart';
 import 'package:app_duelo/ui/cores.dart';
 import 'package:flutter/material.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
 class DueloPage extends StatefulWidget {
   
@@ -24,6 +27,39 @@ class _DueloPageState extends State<DueloPage> {
   String valorDigitado ="0";
   int hpSelecionado = 1;
   List<Map<String, dynamic>> historico = [];
+  Timer? _timerEscurecer;
+  Timer? _timerApagar;
+  bool _telaEscurecida = false;
+
+  @override
+  void dispose() {
+    _timerEscurecer?.cancel();
+    _timerApagar?.cancel();
+    unawaited(WakelockPlus.disable());
+    super.dispose();
+  }
+
+  void _reiniciarTemporizadorTela() {
+    _timerEscurecer?.cancel();
+
+    setState(() {
+      _telaEscurecida = false;
+    });
+
+    unawaited(WakelockPlus.enable());
+
+    _timerEscurecer = Timer(const Duration(minutes: 5), () {
+      if (!mounted) return;
+
+      setState(() {
+        _telaEscurecida = true;
+      });
+    });
+
+    _timerApagar = Timer(const Duration(minutes: 20), () {
+      WakelockPlus.disable();
+    });
+  }
 
   void _atualizarDisplay() {
     if (_valorReal.isEmpty) {
@@ -263,6 +299,7 @@ class _DueloPageState extends State<DueloPage> {
 
   void initState() {
     super.initState();
+    _reiniciarTemporizadorTela();
     botoes.addAll([
       {'texto':'1','acao':()=> adicionarDigito('1')},
       {'texto':'2','acao':()=> adicionarDigito('2')},
@@ -280,346 +317,362 @@ class _DueloPageState extends State<DueloPage> {
   }
   @override
   Widget build(BuildContext context) {
-    return Container(
-      
-      color: Cores.corFundo,
-      width: double.infinity,
-      height: double.infinity,
-      child: SafeArea(
-        child: Center(
-          child: Padding(
-            padding: EdgeInsets.all(5),
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                // mainAxisAlignment: MainAxisAlignment.center,
-                // crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      Container(
-                        padding: EdgeInsets.symmetric(horizontal: 12,vertical: 8),
-                        decoration: BoxDecoration(
-                          color: const Color.fromARGB(255, 155, 165, 243),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.black54,width: 1),
-                        ),
-                        child: GestureDetector(
-                          onTap: () => selecionarHp(1),
-                          child: Container(
-                            padding: EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: hpSelecionado == 1 ? const Color.fromARGB(255, 12, 117, 236).withOpacity(0.2) : Colors.transparent,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: AnimatedSwitcher(
-                              duration: Duration(milliseconds: 300),
-                              transitionBuilder: (Widget child, Animation<double> animation) {
-                                return ScaleTransition(scale: animation, child: child);
-                              },
-                              child: Text(
-                                "$hp1",
-                                key: ValueKey<int>(hp1),
-                                style: TextStyle(
-                                  fontSize: getHpFontSize(hp1),
-                                  fontWeight: hpSelecionado == 1 ? FontWeight.bold : FontWeight.normal,
-                                  color:  Colors.black,
-                                  decoration: TextDecoration.none
-                                ),
+    return Listener(
+      onPointerDown: (_) => _reiniciarTemporizadorTela(),
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          Container(
+            color: Cores.corFundo,
+            width: double.infinity,
+            height: double.infinity,
+            child: SafeArea(
+              child: Center(
+                child: Padding(
+                  padding: EdgeInsets.all(5),
+                  child: SingleChildScrollView(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      // mainAxisAlignment: MainAxisAlignment.center,
+                      // crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            Container(
+                              padding: EdgeInsets.symmetric(horizontal: 12,vertical: 8),
+                              decoration: BoxDecoration(
+                                color: const Color.fromARGB(255, 155, 165, 243),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: Colors.black54,width: 1),
                               ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      Container(
-                        padding: EdgeInsets.symmetric(horizontal: 12,vertical: 8),
-                        decoration: BoxDecoration(
-                          color: const Color.fromARGB(255, 238, 142, 134),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.black54,width: 1),
-                        ),
-                        child: GestureDetector(
-                          onTap: () => selecionarHp(2),
-                          child: Container(
-                            padding: EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: hpSelecionado == 2 ? const Color.fromARGB(255, 219, 228, 238).withOpacity(0.2) : Colors.transparent,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: AnimatedSwitcher(
-                              duration: Duration(milliseconds: 300),
-                              transitionBuilder: (Widget child, Animation<double> animation) {
-                                return ScaleTransition(scale: animation, child: child);
-                              },
-                              child: Text(
-                                "$hp2",
-                                key: ValueKey<int>(hp2),                               
-                                style: TextStyle(
-                                  fontSize: getHpFontSize(hp2),
-                                  fontWeight: hpSelecionado == 2 ? FontWeight.bold : FontWeight.normal,
-                                  color:  Colors.black,
-                                  decoration: TextDecoration.none
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                    
-                  const SizedBox(height: 20,),
-                    
-                  Container(
-                    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: const Color.fromARGB(255, 216, 182, 119),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.black54, width: 1),
-                    ),
-                    child: AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 100),
-                      transitionBuilder: (Widget child, Animation<double> animation) {
-                        return ScaleTransition(scale: animation, child: child);
-                      },
-                      child: Builder(
-                        key: ValueKey<String>(valorDigitado),
-                        builder: (context) {
-                          // Separa os zeros provisórios (caso existam)
-                          String reais = valorDigitado;
-                          String zeros = "";
-              
-                          // Se o valor termina com dois zeros E o usuário não digitou 3+ dígitos reais,
-                          // então esses dois zeros são provisórios
-                          if (valorDigitado.endsWith("00") && _valorReal.length < 3 && !_ultimoFoiZero) {
-                            reais = valorDigitado.substring(0, valorDigitado.length - 2);
-                            zeros = "00";
-                          }
-              
-                          return RichText(
-                            textAlign: TextAlign.center,
-                            text: TextSpan(
-                              children: [
-                                TextSpan(
-                                  text: reais,
-                                  style: const TextStyle(
-                                    fontSize: 40,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.black,
+                              child: GestureDetector(
+                                onTap: () => selecionarHp(1),
+                                child: Container(
+                                  padding: EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: hpSelecionado == 1 ? const Color.fromARGB(255, 12, 117, 236).withOpacity(0.2) : Colors.transparent,
+                                    borderRadius: BorderRadius.circular(8),
                                   ),
-                                ),
-                                if (zeros.isNotEmpty)
-                                  TextSpan(
-                                    text: zeros,
-                                    style: const TextStyle(
-                                      
-                                      fontSize: 40,
-                                      fontWeight: FontWeight.bold,
-                                      color: Color.fromARGB(255, 63, 63, 63), // 👈 muda a cor aqui dos zeros provisórios
+                                  child: AnimatedSwitcher(
+                                    duration: Duration(milliseconds: 300),
+                                    transitionBuilder: (Widget child, Animation<double> animation) {
+                                      return ScaleTransition(scale: animation, child: child);
+                                    },
+                                    child: Text(
+                                      "$hp1",
+                                      key: ValueKey<int>(hp1),
+                                      style: TextStyle(
+                                        fontSize: getHpFontSize(hp1),
+                                        fontWeight: hpSelecionado == 1 ? FontWeight.bold : FontWeight.normal,
+                                        color:  Colors.black,
+                                        decoration: TextDecoration.none
+                                      ),
                                     ),
                                   ),
-                              ],
+                                ),
+                              ),
                             ),
-                          );
-                        },
-                      ),
-                    ),
-              
-                  ),
-              
-                  const SizedBox(height: 10,),
-                  
-                  //===================================================================================== TECLADO NUMERICO ============================
-              
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Parte dos números (3 colunas)
-                      Expanded(
-                        flex: 3,
-                        child: LayoutBuilder(
-                          builder: (context, constraints) {
-                            // Calcula largura disponível do Expanded (sem considerar espaçamento)
-                            // final larguraTotal = constraints.maxWidth;
-                            // Espaçamento entre botões no Wrap (8 * 2 espaços entre 3 botões)
-                            // final espacamentoTotal = 8 * 2;
-                            // Largura disponível por botão
-                            // final larguraBotao = (larguraTotal - espacamentoTotal) / 3;
-              
-                            return Wrap(
-                              spacing: 8,
-                              runSpacing: 8,
-                              children: botoes.map((botao) {
-                                return SizedBox(
-                                  width: 80,
-                                  height: 70,
-                                  child: BotaoNumeroWidget(
-                                    onPressed: botao['acao'], 
-                                    texto: botao['texto'],
+                            Container(
+                              padding: EdgeInsets.symmetric(horizontal: 12,vertical: 8),
+                              decoration: BoxDecoration(
+                                color: const Color.fromARGB(255, 238, 142, 134),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: Colors.black54,width: 1),
+                              ),
+                              child: GestureDetector(
+                                onTap: () => selecionarHp(2),
+                                child: Container(
+                                  padding: EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: hpSelecionado == 2 ? const Color.fromARGB(255, 219, 228, 238).withOpacity(0.2) : Colors.transparent,
+                                    borderRadius: BorderRadius.circular(8),
                                   ),
-                                );
-                              }).toList(),
-                            );
-                          },
-                        ),
-                      ),
-              
-                      const SizedBox(width: 12),
-              
-                      // Coluna da direita com botões lógicos (2 colunas)
-                      SizedBox(
-                        width: 72,
-                        // flex: 2,
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            SizedBox(
-                              width: double.infinity,
-                              height: 60,
-                              child: BotaoNumeroWidget(
-                                texto: "C",
-                                cor: const Color.fromARGB(255, 216, 182, 119),
-                                onPressed: limparValorDigitado,
+                                  child: AnimatedSwitcher(
+                                    duration: Duration(milliseconds: 300),
+                                    transitionBuilder: (Widget child, Animation<double> animation) {
+                                      return ScaleTransition(scale: animation, child: child);
+                                    },
+                                    child: Text(
+                                      "$hp2",
+                                      key: ValueKey<int>(hp2),                               
+                                      style: TextStyle(
+                                        fontSize: getHpFontSize(hp2),
+                                        fontWeight: hpSelecionado == 2 ? FontWeight.bold : FontWeight.normal,
+                                        color:  Colors.black,
+                                        decoration: TextDecoration.none
+                                      ),
+                                    ),
+                                  ),
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 10),
-                            SizedBox(
-                              width: double.infinity,
-                              height: 60,
-                              child: BotaoNumeroWidget(
-                                texto: "+",
-                                cor: const Color.fromARGB(133, 124, 221, 132),
-                                onPressed: () => aplicarOperacao(true),
-                              ),
-                            ),
-                            const SizedBox(height: 10),
-                            SizedBox(
-                              width: double.infinity,
-                              height: 60,
-                              child: BotaoNumeroWidget(
-                                texto: "-",
-                                cor: const Color.fromARGB(182, 250, 111, 111),
-                                onPressed: () => aplicarOperacao(false),
-                              ),
-                            ),
-                            const SizedBox(height: 10),
-                            SizedBox(
-                              width: double.infinity,
-                              height: 60,
-                              child: BotaoNumeroWidget(
-                                texto: "÷2",
-                                cor: Cores.metalmorph,
-                                onPressed: dividir,
-                              ),
-                            ),
-                            const SizedBox(height: 10),
-                            
-                            // SizedBox(
-                            //   width: double.infinity,
-                            //   height: 60,
-                            //   child: BotaoNumeroWidget(
-                            //     texto: "R",
-                            //     onPressed: resetarHps,
-                            //   ),
-                            // ),
-                            SizedBox(
-                              width: double.infinity,
-                              height: 60,
-                              child: BotaoAtualizarWidget(onRefresh: resetarHps)
                             ),
                           ],
                         ),
-                      ),
-                    ],
+                          
+                        const SizedBox(height: 20,),
+                          
+                        Container(
+                          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: const Color.fromARGB(255, 216, 182, 119),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.black54, width: 1),
+                          ),
+                          child: AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 100),
+                            transitionBuilder: (Widget child, Animation<double> animation) {
+                              return ScaleTransition(scale: animation, child: child);
+                            },
+                            child: Builder(
+                              key: ValueKey<String>(valorDigitado),
+                              builder: (context) {
+                                // Separa os zeros provisórios (caso existam)
+                                String reais = valorDigitado;
+                                String zeros = "";
+                    
+                                // Se o valor termina com dois zeros E o usuário não digitou 3+ dígitos reais,
+                                // então esses dois zeros são provisórios
+                                if (valorDigitado.endsWith("00") && _valorReal.length < 3 && !_ultimoFoiZero) {
+                                  reais = valorDigitado.substring(0, valorDigitado.length - 2);
+                                  zeros = "00";
+                                }
+                    
+                                return RichText(
+                                  textAlign: TextAlign.center,
+                                  text: TextSpan(
+                                    children: [
+                                      TextSpan(
+                                        text: reais,
+                                        style: const TextStyle(
+                                          fontSize: 40,
+                                          fontWeight: FontWeight.w600,
+                                          color: Colors.black,
+                                        ),
+                                      ),
+                                      if (zeros.isNotEmpty)
+                                        TextSpan(
+                                          text: zeros,
+                                          style: const TextStyle(
+                                            
+                                            fontSize: 40,
+                                            fontWeight: FontWeight.bold,
+                                            color: Color.fromARGB(255, 63, 63, 63), // 👈 muda a cor aqui dos zeros provisórios
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                    
+                        ),
+                    
+                        const SizedBox(height: 10,),
+                        
+                        //===================================================================================== TECLADO NUMERICO ============================
+                    
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Parte dos números (3 colunas)
+                            Expanded(
+                              flex: 3,
+                              child: LayoutBuilder(
+                                builder: (context, constraints) {
+                                  // Calcula largura disponível do Expanded (sem considerar espaçamento)
+                                  // final larguraTotal = constraints.maxWidth;
+                                  // Espaçamento entre botões no Wrap (8 * 2 espaços entre 3 botões)
+                                  // final espacamentoTotal = 8 * 2;
+                                  // Largura disponível por botão
+                                  // final larguraBotao = (larguraTotal - espacamentoTotal) / 3;
+                    
+                                  return Wrap(
+                                    spacing: 8,
+                                    runSpacing: 8,
+                                    children: botoes.map((botao) {
+                                      return SizedBox(
+                                        width: 80,
+                                        height: 70,
+                                        child: BotaoNumeroWidget(
+                                          onPressed: botao['acao'], 
+                                          texto: botao['texto'],
+                                        ),
+                                      );
+                                    }).toList(),
+                                  );
+                                },
+                              ),
+                            ),
+                    
+                            const SizedBox(width: 12),
+                    
+                            // Coluna da direita com botões lógicos (2 colunas)
+                            SizedBox(
+                              width: 72,
+                              // flex: 2,
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                children: [
+                                  SizedBox(
+                                    width: double.infinity,
+                                    height: 60,
+                                    child: BotaoNumeroWidget(
+                                      texto: "C",
+                                      cor: const Color.fromARGB(255, 216, 182, 119),
+                                      onPressed: limparValorDigitado,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 10),
+                                  SizedBox(
+                                    width: double.infinity,
+                                    height: 60,
+                                    child: BotaoNumeroWidget(
+                                      texto: "+",
+                                      cor: const Color.fromARGB(133, 124, 221, 132),
+                                      onPressed: () => aplicarOperacao(true),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 10),
+                                  SizedBox(
+                                    width: double.infinity,
+                                    height: 60,
+                                    child: BotaoNumeroWidget(
+                                      texto: "-",
+                                      cor: const Color.fromARGB(182, 250, 111, 111),
+                                      onPressed: () => aplicarOperacao(false),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 10),
+                                  SizedBox(
+                                    width: double.infinity,
+                                    height: 60,
+                                    child: BotaoNumeroWidget(
+                                      texto: "÷2",
+                                      cor: Cores.metalmorph,
+                                      onPressed: dividir,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 10),
+                                  
+                                  // SizedBox(
+                                  //   width: double.infinity,
+                                  //   height: 60,
+                                  //   child: BotaoNumeroWidget(
+                                  //     texto: "R",
+                                  //     onPressed: resetarHps,
+                                  //   ),
+                                  // ),
+                                  SizedBox(
+                                    width: double.infinity,
+                                    height: 60,
+                                    child: BotaoAtualizarWidget(onRefresh: resetarHps)
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 10,),
+                    
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [ 
+          //#################################################################################################
+          //#################################################################################################
+          //#################################################################################################
+                            ElevatedButton(
+                              onPressed: _abrirSorte,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.indigo,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                padding: const EdgeInsets.all(14),
+                              ),
+                              child: const Icon(
+                                Icons.casino_outlined,
+                                size: 28,
+                                color: Colors.white,
+                              ),
+                            //   child: Image.asset(
+                            //     'assets/icons/historico.png',
+                            //     width: 28,
+                            //     height: 28,
+                            //     color: Colors.white,
+                            //   ),
+                            ), 
+                            SizedBox(width: 10,),
+                            ElevatedButton(
+                              onPressed: ()=> _abrirCalculadora(context),  
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.indigo,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                padding: const EdgeInsets.all(14),
+                              ),
+                              child: Image.asset(
+                                'assets/icons/calculadora.png',
+                                width: 28,
+                                height: 28,
+                                color: Colors.white,
+                              ),
+                            ), 
+                            SizedBox(width: 10,),
+                            ElevatedButton(
+                              onPressed: _historico,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.indigo,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                padding: const EdgeInsets.all(14),
+                              ),
+                              child: Image.asset(
+                                'assets/icons/historico.png',
+                                width: 28,
+                                height: 28,
+                                color: Colors.white,
+                              ),
+                            ), 
+                            SizedBox(width: 10,),
+                            ElevatedButton(
+                              onPressed: _abrirCartas,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.indigo,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                padding: const EdgeInsets.all(14),
+                              ),
+                              child: Image.asset(
+                                'assets/icons/card.png',
+                                width: 28,
+                                height: 28,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ]
+                        ),
+                      ],
+                    ),
                   ),
-                  SizedBox(height: 10,),
-              
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [ 
-//#################################################################################################
-//#################################################################################################
-//#################################################################################################
-                      ElevatedButton(
-                        onPressed: _abrirSorte,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.indigo,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          padding: const EdgeInsets.all(14),
-                        ),
-                        child: const Icon(
-                          Icons.casino_outlined,
-                          size: 28,
-                          color: Colors.white,
-                        ),
-                      //   child: Image.asset(
-                      //     'assets/icons/historico.png',
-                      //     width: 28,
-                      //     height: 28,
-                      //     color: Colors.white,
-                      //   ),
-                      ), 
-                      SizedBox(width: 10,),
-                      ElevatedButton(
-                        onPressed: ()=> _abrirCalculadora(context),  
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.indigo,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          padding: const EdgeInsets.all(14),
-                        ),
-                        child: Image.asset(
-                          'assets/icons/calculadora.png',
-                          width: 28,
-                          height: 28,
-                          color: Colors.white,
-                        ),
-                      ), 
-                      SizedBox(width: 10,),
-                      ElevatedButton(
-                        onPressed: _historico,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.indigo,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          padding: const EdgeInsets.all(14),
-                        ),
-                        child: Image.asset(
-                          'assets/icons/historico.png',
-                          width: 28,
-                          height: 28,
-                          color: Colors.white,
-                        ),
-                      ), 
-                      SizedBox(width: 10,),
-                      ElevatedButton(
-                        onPressed: _abrirCartas,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.indigo,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          padding: const EdgeInsets.all(14),
-                        ),
-                        child: Image.asset(
-                          'assets/icons/card.png',
-                          width: 28,
-                          height: 28,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ]
-                  ),
-                ],
-              ),
+                ),
+              )
             ),
           ),
-        )
+          IgnorePointer(
+            ignoring: true,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 500),
+              color: _telaEscurecida
+                ? Colors.black.withValues(alpha: 0.75)
+                : Colors.transparent,
+            ),
+          ),
+        ],
       ),
     );
   }
