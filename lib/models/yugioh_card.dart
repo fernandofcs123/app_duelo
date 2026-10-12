@@ -1,5 +1,3 @@
-import '../constants/edison_set.dart';
-
 class YugiohCard {
   final String name;
   final String type;
@@ -10,6 +8,7 @@ class YugiohCard {
   final List<dynamic>? cardImages;
   final List<dynamic>? cardSets;
   final Map<String, dynamic>? banlistInfo;
+  final String id;
 
   YugiohCard({
     required this.name,
@@ -21,6 +20,7 @@ class YugiohCard {
     this.cardImages,
     this.cardSets,
     this.banlistInfo,
+    required this.id,
   });
 
   factory YugiohCard.fromJson(Map<String, dynamic> json) {
@@ -34,6 +34,7 @@ class YugiohCard {
       cardImages: json['card_images'],
       cardSets: json['card_sets'],
       banlistInfo: json['banlist_info'],
+      id: json['id'].toString(),
     );
   }
 
@@ -42,20 +43,6 @@ class YugiohCard {
       cardImages != null && cardImages!.isNotEmpty
           ? cardImages!.first['image_url']
           : '';
-
-  // ================= EDISON (SET BASED) =================
-  bool get isEdison {
-    if (cardSets == null) return false;
-
-    return cardSets!.any((set) {
-      final rawCode = set['set_code'];
-      if (rawCode == null) return false;
-
-      final prefix = rawCode.toString().split('-').first;
-      return edisonSetCodes.contains(prefix);
-    });
-  }
-
   // ================= BANLIST =================
   int get tcgLimit {
     if (banlistInfo == null) return 3;

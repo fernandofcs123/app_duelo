@@ -1,18 +1,46 @@
 import 'dart:convert';
+import 'package:app_duelo/services/edison_card_pool_service.dart';
 import 'package:http/http.dart' as http;
 import '../models/yugioh_card.dart';
 
 class YugiohApiService {
-  Future<List<YugiohCard>> buscarPorNomeReconhecido(
-    String nome,
+  Future<List<YugiohCard>> buscarCartaPorCodigo(
+    String codigo,
   ) async {
-    final nomeLimpo = nome.trim();
-
-    if (nomeLimpo.isEmpty) {
+    if (!RegExp(r'^\d{8}$').hasMatch(codigo)) {
       return [];
     }
 
-    return buscarCartas(nome: nomeLimpo);
+    final uri = Uri.https(
+      'db.ygoprodeck.com',
+      '/api/v7/cardinfo.php',
+      {'id': codigo},
+    );
+
+    final response = await http.get(uri);
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+
+      final dados = data['data'];
+
+      if (dados is! List) {
+        return [];
+      }
+
+      return dados
+        .map((e) => YugiohCard.fromJson(e))
+        .toList();
+    }
+
+    if (response.statusCode == 400) {
+      return [];
+    }
+
+    throw Exception(
+      'Erro ao consultar o código da carta '
+      '(HTTP ${response.statusCode})',
+    );
   }
 
   Future<List<YugiohCard>> buscarCartas({
@@ -54,7 +82,7 @@ class YugiohApiService {
 
       if (edison) {
         cartas = cartas.where((card) {
-          return card.isEdison;
+          return EdisonCardPoolService.contem(card.id);
         }).toList();
       }
 

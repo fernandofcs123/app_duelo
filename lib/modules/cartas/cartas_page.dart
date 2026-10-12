@@ -1,9 +1,11 @@
 import 'package:app_duelo/models/yugioh_card.dart';
+import 'package:app_duelo/modules/cartas/camera_codigo_page.dart';
 import 'package:app_duelo/modules/cartas/detalhe_carta/card_details_page.dart';
 import 'package:app_duelo/modules/cartas/widgets/carta_card_widget.dart';
 import 'package:app_duelo/modules/cartas/widgets/filtro_cartas_widget.dart';
 import 'package:app_duelo/modules/cartas/widgets/filtro_toggle_widget.dart';
 import 'package:app_duelo/services/card_recognition_service.dart';
+import 'package:app_duelo/services/edison_card_pool_service.dart';
 import 'package:app_duelo/services/yugioh_api_service.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -31,59 +33,75 @@ class _CartasPageState extends State<CartasPage> {
   // Controla se os filtros estão abertos ou fechados
   bool filtrosExpandidos = true;
 
+  @override
+  void dispose() {
+    reconhecimento.dispose();
+    super.dispose();
+  }
+
   Future<void> identificarCarta() async {
     try {
-      final foto = await picker.pickImage(
-        source: ImageSource.camera,
-        imageQuality: 90,
+      final caminhoImagem = await Navigator.push<String>(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const CameraCodigoPage(),
+        ),
       );
 
-      if (foto == null || !mounted) return;
+      if (caminhoImagem == null || !mounted) return;
 
       setState(() {
         carregando = true;
       });
 
-      final texto = await reconhecimento.reconhecerTexto(foto.path);
+      final codigo = await reconhecimento.reconhecerCodigo(
+        caminhoImagem,
+      );
 
       if (!mounted) return;
 
-      final linhas = texto
-        .split('\n')
-        .map((linha) => linha.trim())
-        .where((linha) => linha.isNotEmpty)
-        .toList();
+      if (codigo == null) {
+        setState(() => carregando = false);
 
-      if (linhas.isEmpty) {
-        setState(() {
-          carregando = false;
-        });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Não consegui reconhecer o texto. Tente outra foto',
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Não consegui identificar um único código de '
+              '8 dígitos; Aproxime a câmera e tente novamente.',
+            ),
           ),
-        ),
-      );
-      return;
+        );
+        return;
       }
-      final nomeReconhecido = linhas.first;
+
+      final resultado = await api.buscarCartaPorCodigo(codigo);
+
+      if (!mounted) return;
 
       setState(() {
-        nome = nomeReconhecido;
-        nomeParaWidget = nomeReconhecido;
-        efeito = '';
+        cartas = resultado;
         carregando = false;
-      });
 
-      await buscarCartas();
+        nome = '';
+        nomeParaWidget = '';
+        efeito = '';
+        tipo = 'Todos';
+        edison = false;
+      });
+      
+      if (resultado.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Nenhuma carta encontrada para o código $codigo.',
+            ),
+          ),
+        );
+      }
     } catch (e) {
       if (!mounted) return;
 
-      setState(() {
-        carregando = false;
-      });
+      setState(() => carregando = false);
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -100,17 +118,36 @@ class _CartasPageState extends State<CartasPage> {
 
     setState(() => carregando = true);
 
-    final resultado = await api.buscarCartas(
-      nome: nome,
-      efeito: efeito,
-      tipo: tipo,
-      edison: edison,
-    );
+    try {
+      await EdisonCardPoolService.carregar();
+        final resultado = await api.buscarCartas(
+          nome: nome,
+          efeito: efeito,
+          tipo: tipo,
+          edison: false,
+      );
 
-    setState(() {
-      cartas = resultado;
-      carregando = false;
-    });
+      final cartasFiltradas = edison
+        ? resultado
+          .where((card) => EdisonCardPoolService.contem(card.id))
+          .toList()
+        : resultado;
+
+      if (!mounted) return;
+
+      setState(() {
+        cartas = cartasFiltradas;
+        carregando = false;
+      });
+    } catch(e) {
+      if (!mounted) return;
+
+      setState(() => carregando = false);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erro ao buscar cartas: $e')),
+      );
+    }
   }
 
   @override

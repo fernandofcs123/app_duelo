@@ -1,4 +1,5 @@
 import 'package:app_duelo/models/yugioh_card.dart';
+import 'package:app_duelo/services/edison_card_pool_service.dart';
 import 'package:flutter/material.dart';
 
 class CardDetailsPage extends StatelessWidget {
@@ -155,7 +156,7 @@ void _showCardImage(BuildContext context){
     
   }
   Widget _buildEdisonStatus(YugiohCard card){
-    if (!card.isEdison) {
+    if (!EdisonCardPoolService.contem(card.id)) {
       return const Text(
         '❌ Não é Edison',
         style: TextStyle(color: Colors.red),

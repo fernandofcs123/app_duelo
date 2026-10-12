@@ -1,3 +1,4 @@
+import 'package:app_duelo/services/edison_card_pool_service.dart';
 import 'package:flutter/material.dart';
 import '../../../models/yugioh_card.dart';
 import '../../../services/edison_banlist_service.dart';
@@ -32,85 +33,19 @@ class CartaCardWidget extends StatelessWidget {
       ),
     );
   }
-
-  // ================= INFO =================
-  Widget _cardInfo(EdisonBanlist banlist) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          card.name,
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-
-        const SizedBox(height: 4),
-
-        Text(
-          card.type,
-          style: TextStyle(
-            fontSize: 13,
-            color: Colors.grey.shade700,
-          ),
-        ),
-
-        const SizedBox(height: 6),
-
-
-        if (card.atk != null) ...[
-          Text(
-            'ATK ${card.atk} / DEF ${card.def ?? '-'}',
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-
-          const SizedBox(height: 6),
-
-          Text(
-            card.desc,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(fontSize: 13),
-          ),
-        ] else ...[
-          Text(
-            card.desc,
-            maxLines: 4,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(fontSize: 13),
-          ),
-        ],
-
-        const SizedBox(height: 8),
-
-        Row(
-          children: [
-            _edisonBadge(),
-            const SizedBox(width: 8),
-            _limitBadge(),
-          ],
-        ),
-      ],
-    );
-  }
-
   // ================= BADGES =================
 
   Widget _edisonBadge() {
+    final isEdison = EdisonCardPoolService.contem(card.id);
+
   return Container(
     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
     decoration: BoxDecoration(
-      color: card.isEdison ? Colors.green : Colors.red,
+      color: isEdison ? Colors.green : Colors.red,
       borderRadius: BorderRadius.circular(12),
     ),
     child: Text(
-      card.isEdison ? 'Edison' : 'Não Edison',
+      isEdison ? 'Edison' : 'Não Edison',
       style: const TextStyle(
         color: Colors.white,
         fontSize: 12,
@@ -123,7 +58,7 @@ class CartaCardWidget extends StatelessWidget {
 
 
   Widget _limitBadge() {
-  if (!card.isEdison) return const SizedBox();
+  if (!EdisonCardPoolService.contem(card.id)) return const SizedBox();
 
   return FutureBuilder<EdisonBanlist>(
     future: EdisonBanlistService.load(),
