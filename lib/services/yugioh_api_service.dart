@@ -3,6 +3,18 @@ import 'package:http/http.dart' as http;
 import '../models/yugioh_card.dart';
 
 class YugiohApiService {
+  Future<List<YugiohCard>> buscarPorNomeReconhecido(
+    String nome,
+  ) async {
+    final nomeLimpo = nome.trim();
+
+    if (nomeLimpo.isEmpty) {
+      return [];
+    }
+
+    return buscarCartas(nome: nomeLimpo);
+  }
+
   Future<List<YugiohCard>> buscarCartas({
     String? nome,
     String? efeito,

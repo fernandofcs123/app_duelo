@@ -9,43 +9,25 @@ class CartaCardWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<EdisonBanlist>(
-      future: EdisonBanlistService.load(),
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) return const SizedBox();
-
-        final banlist = snapshot.data!;
-
-        return Card(
-          margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-          elevation: 4,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(10),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _cardImage(),
-                const SizedBox(width: 12),
-                Expanded(child: _cardInfo(banlist)),
-              ],
-            ),
-          ),
-        );
-      },
+    return Card(
+      elevation: 4,
+      margin: const EdgeInsets.all(6),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: _cardImage(),
     );
   }
 
   // ================= IMAGE =================
   Widget _cardImage() {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(10),
+    return AspectRatio(
+      aspectRatio: 0.68,
       child: Image.network(
         card.imageUrl,
-        width: 90,
-        height: 130,
+        // width: 90,
+        // height: 130,
         fit: BoxFit.cover,
       ),
     );

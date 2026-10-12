@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 class FiltroCartasWidget extends StatefulWidget {
+  final String nomeInicial;
+  final VoidCallback onCamera;
   final VoidCallback onBuscar;
   final VoidCallback onLimpar;
 
@@ -17,6 +19,8 @@ class FiltroCartasWidget extends StatefulWidget {
     required this.onEfeitoChanged,
     required this.onTipoChanged,
     required this.onEdisonChanged,
+    this.nomeInicial = '',
+    required this.onCamera,
   });
 
   @override
@@ -32,6 +36,13 @@ class _FiltroCartasWidgetState extends State<FiltroCartasWidget> {
   String _tipoSelecionado = 'Todos';
   bool _edison = false;
 
+  @override
+  void initState() {
+    super.initState();
+    _nomeController.text = widget.nomeInicial;
+  }
+
+  @override
   void dispose() {
     _nomeController.dispose();
     _efeitoController.dispose();
@@ -47,6 +58,15 @@ class _FiltroCartasWidgetState extends State<FiltroCartasWidget> {
       _edison = false;
     });
     widget.onLimpar();
+  }
+
+  @override
+  void didUpdateWidget(covariant FiltroCartasWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if(widget.nomeInicial != oldWidget.nomeInicial) {
+      _nomeController.text = widget.nomeInicial;
+    }
   }
 
 
@@ -82,7 +102,13 @@ class _FiltroCartasWidgetState extends State<FiltroCartasWidget> {
                     onChanged: widget.onNomeChanged,
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 4),
+                IconButton(
+                  tooltip: 'Identificar carta pela câmera',
+                  icon: const Icon(Icons.camera_alt),
+                  onPressed: widget.onCamera, 
+                ),
+                const SizedBox(width: 4),
 
                 Expanded(
                   child: TextField(
@@ -183,7 +209,7 @@ class _FiltroCartasWidgetState extends State<FiltroCartasWidget> {
                       },
                     ),
                   ),
-                ),
+                ),                
                 IconButton(
                   tooltip: 'Limpar Filtros',
                   onPressed: _limparFiltros, 

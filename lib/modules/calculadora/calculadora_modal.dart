@@ -1,10 +1,8 @@
-import 'package:app_duelo/modules/calculadora/passarinho_modal.dart';
 import 'package:app_duelo/ui/botao_metal_widget.dart';
 import 'package:app_duelo/ui/hp_widget.dart';
 import 'package:app_duelo/ui/passarinho_button_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:app_duelo/ui/botao_numero_widget.dart';
-import 'package:lucide_icons/lucide_icons.dart';
 
 class CalculadoraModal extends StatefulWidget {
   final int hpAtual;

@@ -1,6 +1,5 @@
 import 'package:app_duelo/modules/calculadora/calculadora_modal.dart';
 import 'package:app_duelo/modules/cartas/cartas_page.dart';
-import 'package:app_duelo/modules/cartas/cartas_page2.dart';
 import 'package:app_duelo/modules/duelo/historico/historico_modal.dart';
 import 'package:app_duelo/modules/duelo/historico/sorte_modal.dart';
 import 'package:app_duelo/ui/botao_atualizar_widget.dart';
@@ -255,15 +254,6 @@ class _DueloPageState extends State<DueloPage> {
     );
   
   }
-  void _abrirCartas2(){
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => const CartasPage2()
-      )
-    );
-  }
-  
 
   final List<Map<String, dynamic>> botoes =[];
 
@@ -609,23 +599,6 @@ class _DueloPageState extends State<DueloPage> {
                       SizedBox(width: 10,),
                       ElevatedButton(
                         onPressed: _abrirCartas,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.indigo,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          padding: const EdgeInsets.all(14),
-                        ),
-                        child: Image.asset(
-                          'assets/icons/card.png',
-                          width: 28,
-                          height: 28,
-                          color: Colors.white,
-                        ),
-                      ),
-                      SizedBox(width: 10,),
-                      ElevatedButton(
-                        onPressed: _abrirCartas2,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.indigo,
                           shape: RoundedRectangleBorder(
