@@ -4,6 +4,8 @@ import 'package:app_duelo/modules/calculadora/calculadora_modal.dart';
 import 'package:app_duelo/modules/cartas/cartas_page.dart';
 import 'package:app_duelo/modules/duelo/historico/historico_modal.dart';
 import 'package:app_duelo/modules/duelo/historico/sorte_modal.dart';
+import 'package:app_duelo/modules/duelo/telas/tela_placeholder.dart';
+import 'package:app_duelo/modules/duelo/widgets/menu_lateral_widget.dart';
 import 'package:app_duelo/ui/botao_atualizar_widget.dart';
 import 'package:app_duelo/ui/botao_numero_widget.dart';
 import 'package:app_duelo/ui/cores.dart';
@@ -11,7 +13,6 @@ import 'package:flutter/material.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
 class DueloPage extends StatefulWidget {
-  
   const DueloPage({super.key});
 
   @override
@@ -24,12 +25,13 @@ class _DueloPageState extends State<DueloPage> {
   bool _ultimoFoiZero = false;
   int hp1 = 8000;
   int hp2 = 8000;
-  String valorDigitado ="0";
+  String valorDigitado = "0";
   int hpSelecionado = 1;
   List<Map<String, dynamic>> historico = [];
   Timer? _timerEscurecer;
   Timer? _timerApagar;
   bool _telaEscurecida = false;
+  bool _menuAberto = false;
 
   @override
   void dispose() {
@@ -37,6 +39,48 @@ class _DueloPageState extends State<DueloPage> {
     _timerApagar?.cancel();
     unawaited(WakelockPlus.disable());
     super.dispose();
+  }
+
+  void _alternarMenu() {
+    setState(() {
+      _menuAberto = !_menuAberto;
+    });
+  }
+
+  void _fecharMenu() {
+    setState(() {
+      _menuAberto = false;
+    });
+  }
+
+  void _abrirMeusDecks() {
+    _fecharMenu();
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder:
+            (_) => const TelaPlaceholder(
+              titulo: 'Meus decks',
+              icone: Icons.collections_bookmark_outlined,
+            ),
+      ),
+    );
+  }
+
+  void _abrirMinhasCartas() {
+    _fecharMenu();
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder:
+            (_) => const TelaPlaceholder(
+              titulo: 'Minhas cartas',
+              icone: Icons.library_books_outlined,
+            ),
+      ),
+    );
   }
 
   void _reiniciarTemporizadorTela() {
@@ -67,18 +111,16 @@ class _DueloPageState extends State<DueloPage> {
       return;
     }
 
-    if (_valorReal.length <3) {
+    if (_valorReal.length < 3) {
       if (_ultimoFoiZero) {
         valorDigitado = _valorReal;
-      }else {
+      } else {
         valorDigitado = _valorReal + "00";
       }
     } else {
       valorDigitado = _valorReal;
     }
   }
-  
-
 
   void _abrirCalculadora(BuildContext context) async {
     final int hpAtual = hpSelecionado == 1 ? hp1 : hp2;
@@ -92,20 +134,20 @@ class _DueloPageState extends State<DueloPage> {
 
     if (resultado != null) {
       setState(() {
-        if (hpSelecionado ==1){
+        if (hpSelecionado == 1) {
           hp1 = (hp1 - resultado).clamp(0, double.infinity).toInt();
         } else {
           hp2 = (hp2 - resultado).clamp(0, double.infinity).toInt();
         }
       });
     }
-
   }
 
   void adicionarDigito(String digito) {
     setState(() {
       // Ignora zeros múltiplos no início
-      if ((_valorReal.isEmpty|| _valorReal == "0") && (digito == '00' || digito == '000')) {
+      if ((_valorReal.isEmpty || _valorReal == "0") &&
+          (digito == '00' || digito == '000')) {
         return;
       }
 
@@ -151,7 +193,6 @@ class _DueloPageState extends State<DueloPage> {
         return;
       }
       _atualizarDisplay();
-
     });
   }
 
@@ -170,12 +211,11 @@ class _DueloPageState extends State<DueloPage> {
     }
   }
 
-
   void aplicarOperacao(bool somar) {
     int valor = int.tryParse(valorDigitado) ?? 0;
     setState(() {
       if (somar) {
-        if (hpSelecionado ==1){
+        if (hpSelecionado == 1) {
           final int antes = hp1;
           hp1 += valor;
           historico.add({
@@ -197,9 +237,9 @@ class _DueloPageState extends State<DueloPage> {
           });
         }
       } else {
-        if (hpSelecionado == 1){
+        if (hpSelecionado == 1) {
           final int antes = hp1;
-          hp1 = (hp1 -valor).clamp(0, double.infinity).toInt();
+          hp1 = (hp1 - valor).clamp(0, double.infinity).toInt();
           historico.add({
             'hp': 'HP1',
             'valor': valor,
@@ -209,7 +249,7 @@ class _DueloPageState extends State<DueloPage> {
           });
         } else {
           final int antes = hp2;
-          hp2 = (hp2 -valor).clamp(0, double.infinity).toInt();
+          hp2 = (hp2 - valor).clamp(0, double.infinity).toInt();
           historico.add({
             'hp': 'HP2',
             'valor': valor,
@@ -220,101 +260,102 @@ class _DueloPageState extends State<DueloPage> {
         }
       }
       _valorReal = "";
-      valorDigitado ="0";
+      valorDigitado = "0";
     });
   }
 
-  void dividir(){
+  void dividir() {
     setState(() {
-      if (hpSelecionado ==1){
+      if (hpSelecionado == 1) {
         final int antes = hp1;
         final String valor = "÷2";
-        hp1 = (hp1 /2).ceil();
+        hp1 = (hp1 / 2).ceil();
         historico.add({
-          'hp':'HP1',
+          'hp': 'HP1',
           'valor': valor,
           'antes': antes,
-          'depois':hp1,
+          'depois': hp1,
           'tipo': '',
         });
       } else {
         final int antes = hp2;
         final String valor = "÷2";
-        hp2 = (hp2 /2).ceil();
+        hp2 = (hp2 / 2).ceil();
         historico.add({
-          'hp':'HP2',
+          'hp': 'HP2',
           'valor': valor,
           'antes': antes,
-          'depois':hp2,
+          'depois': hp2,
           'tipo': '',
         });
       }
     });
   }
 
-  void selecionarHp(int numero){
+  void selecionarHp(int numero) {
     setState(() {
       hpSelecionado = numero;
     });
   }
 
-  void limparValorDigitado(){
+  void limparValorDigitado() {
     setState(() {
       _valorReal = "";
-      valorDigitado ="0";
+      valorDigitado = "0";
     });
   }
 
-  void resetarHps(){
+  void resetarHps() {
     setState(() {
       hp1 = hpInicial;
       hp2 = hpInicial;
       historico.clear();
+      limparValorDigitado();
     });
   }
 
-  void _historico(){
-    showDialog(context: context, builder: (_) => HistoricoModal(historico: historico, onReset: resetarHps,));
+  void _historico() {
+    showDialog(
+      context: context,
+      builder: (_) => HistoricoModal(historico: historico, onReset: resetarHps),
+    );
   }
 
-  void _abrirSorte(){
+  void _abrirSorte() {
     showDialog(context: context, builder: (_) => SorteModal());
   }
 
-  void _abrirCartas(){
+  void _abrirCartas() {
+    _fecharMenu();
+
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (_) => const CartasPage()
-      )
+      MaterialPageRoute(builder: (_) => const CartasPage()),
     );
-  
   }
 
-  final List<Map<String, dynamic>> botoes =[];
-
-  
+  final List<Map<String, dynamic>> botoes = [];
 
   @override
-
   void initState() {
     super.initState();
     _reiniciarTemporizadorTela();
     botoes.addAll([
-      {'texto':'1','acao':()=> adicionarDigito('1')},
-      {'texto':'2','acao':()=> adicionarDigito('2')},
-      {'texto':'3','acao':()=> adicionarDigito('3')},
-      {'texto':'4','acao':()=> adicionarDigito('4')},
-      {'texto':'5','acao':()=> adicionarDigito('5')},
-      {'texto':'6','acao':()=> adicionarDigito('6')},
-      {'texto':'7','acao':()=> adicionarDigito('7')},
-      {'texto':'8','acao':()=> adicionarDigito('8')},
-      {'texto':'9','acao':()=> adicionarDigito('9')},
-      {'texto':'0','acao':()=> adicionarDigito('0')},
-      {'texto':'00','acao':()=> adicionarDigito('00')},
-      {'texto':'000','acao':()=> adicionarDigito('000')},
+      {'texto': '1', 'acao': () => adicionarDigito('1')},
+      {'texto': '2', 'acao': () => adicionarDigito('2')},
+      {'texto': '3', 'acao': () => adicionarDigito('3')},
+      {'texto': '4', 'acao': () => adicionarDigito('4')},
+      {'texto': '5', 'acao': () => adicionarDigito('5')},
+      {'texto': '6', 'acao': () => adicionarDigito('6')},
+      {'texto': '7', 'acao': () => adicionarDigito('7')},
+      {'texto': '8', 'acao': () => adicionarDigito('8')},
+      {'texto': '9', 'acao': () => adicionarDigito('9')},
+      {'texto': '0', 'acao': () => adicionarDigito('0')},
+      {'texto': '00', 'acao': () => adicionarDigito('00')},
+      {'texto': '000', 'acao': () => adicionarDigito('000')},
     ]);
   }
+
   @override
   Widget build(BuildContext context) {
     return Listener(
@@ -340,33 +381,56 @@ class _DueloPageState extends State<DueloPage> {
                           mainAxisAlignment: MainAxisAlignment.spaceAround,
                           children: [
                             Container(
-                              padding: EdgeInsets.symmetric(horizontal: 12,vertical: 8),
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 8,
+                              ),
                               decoration: BoxDecoration(
                                 color: const Color.fromARGB(255, 155, 165, 243),
                                 borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: Colors.black54,width: 1),
+                                border: Border.all(
+                                  color: Colors.black54,
+                                  width: 1,
+                                ),
                               ),
                               child: GestureDetector(
                                 onTap: () => selecionarHp(1),
                                 child: Container(
                                   padding: EdgeInsets.all(8),
                                   decoration: BoxDecoration(
-                                    color: hpSelecionado == 1 ? const Color.fromARGB(255, 12, 117, 236).withOpacity(0.2) : Colors.transparent,
+                                    color:
+                                        hpSelecionado == 1
+                                            ? const Color.fromARGB(
+                                              255,
+                                              12,
+                                              117,
+                                              236,
+                                            ).withOpacity(0.2)
+                                            : Colors.transparent,
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: AnimatedSwitcher(
                                     duration: Duration(milliseconds: 300),
-                                    transitionBuilder: (Widget child, Animation<double> animation) {
-                                      return ScaleTransition(scale: animation, child: child);
+                                    transitionBuilder: (
+                                      Widget child,
+                                      Animation<double> animation,
+                                    ) {
+                                      return ScaleTransition(
+                                        scale: animation,
+                                        child: child,
+                                      );
                                     },
                                     child: Text(
                                       "$hp1",
                                       key: ValueKey<int>(hp1),
                                       style: TextStyle(
                                         fontSize: getHpFontSize(hp1),
-                                        fontWeight: hpSelecionado == 1 ? FontWeight.bold : FontWeight.normal,
-                                        color:  Colors.black,
-                                        decoration: TextDecoration.none
+                                        fontWeight:
+                                            hpSelecionado == 1
+                                                ? FontWeight.bold
+                                                : FontWeight.normal,
+                                        color: Colors.black,
+                                        decoration: TextDecoration.none,
                                       ),
                                     ),
                                   ),
@@ -374,33 +438,56 @@ class _DueloPageState extends State<DueloPage> {
                               ),
                             ),
                             Container(
-                              padding: EdgeInsets.symmetric(horizontal: 12,vertical: 8),
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 8,
+                              ),
                               decoration: BoxDecoration(
                                 color: const Color.fromARGB(255, 238, 142, 134),
                                 borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: Colors.black54,width: 1),
+                                border: Border.all(
+                                  color: Colors.black54,
+                                  width: 1,
+                                ),
                               ),
                               child: GestureDetector(
                                 onTap: () => selecionarHp(2),
                                 child: Container(
                                   padding: EdgeInsets.all(8),
                                   decoration: BoxDecoration(
-                                    color: hpSelecionado == 2 ? const Color.fromARGB(255, 219, 228, 238).withOpacity(0.2) : Colors.transparent,
+                                    color:
+                                        hpSelecionado == 2
+                                            ? const Color.fromARGB(
+                                              255,
+                                              219,
+                                              228,
+                                              238,
+                                            ).withOpacity(0.2)
+                                            : Colors.transparent,
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: AnimatedSwitcher(
                                     duration: Duration(milliseconds: 300),
-                                    transitionBuilder: (Widget child, Animation<double> animation) {
-                                      return ScaleTransition(scale: animation, child: child);
+                                    transitionBuilder: (
+                                      Widget child,
+                                      Animation<double> animation,
+                                    ) {
+                                      return ScaleTransition(
+                                        scale: animation,
+                                        child: child,
+                                      );
                                     },
                                     child: Text(
                                       "$hp2",
-                                      key: ValueKey<int>(hp2),                               
+                                      key: ValueKey<int>(hp2),
                                       style: TextStyle(
                                         fontSize: getHpFontSize(hp2),
-                                        fontWeight: hpSelecionado == 2 ? FontWeight.bold : FontWeight.normal,
-                                        color:  Colors.black,
-                                        decoration: TextDecoration.none
+                                        fontWeight:
+                                            hpSelecionado == 2
+                                                ? FontWeight.bold
+                                                : FontWeight.normal,
+                                        color: Colors.black,
+                                        decoration: TextDecoration.none,
                                       ),
                                     ),
                                   ),
@@ -409,11 +496,14 @@ class _DueloPageState extends State<DueloPage> {
                             ),
                           ],
                         ),
-                          
-                        const SizedBox(height: 20,),
-                          
+
+                        const SizedBox(height: 20),
+
                         Container(
-                          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
                           decoration: BoxDecoration(
                             color: const Color.fromARGB(255, 216, 182, 119),
                             borderRadius: BorderRadius.circular(12),
@@ -421,8 +511,14 @@ class _DueloPageState extends State<DueloPage> {
                           ),
                           child: AnimatedSwitcher(
                             duration: const Duration(milliseconds: 100),
-                            transitionBuilder: (Widget child, Animation<double> animation) {
-                              return ScaleTransition(scale: animation, child: child);
+                            transitionBuilder: (
+                              Widget child,
+                              Animation<double> animation,
+                            ) {
+                              return ScaleTransition(
+                                scale: animation,
+                                child: child,
+                              );
                             },
                             child: Builder(
                               key: ValueKey<String>(valorDigitado),
@@ -430,14 +526,19 @@ class _DueloPageState extends State<DueloPage> {
                                 // Separa os zeros provisórios (caso existam)
                                 String reais = valorDigitado;
                                 String zeros = "";
-                    
+
                                 // Se o valor termina com dois zeros E o usuário não digitou 3+ dígitos reais,
                                 // então esses dois zeros são provisórios
-                                if (valorDigitado.endsWith("00") && _valorReal.length < 3 && !_ultimoFoiZero) {
-                                  reais = valorDigitado.substring(0, valorDigitado.length - 2);
+                                if (valorDigitado.endsWith("00") &&
+                                    _valorReal.length < 3 &&
+                                    !_ultimoFoiZero) {
+                                  reais = valorDigitado.substring(
+                                    0,
+                                    valorDigitado.length - 2,
+                                  );
                                   zeros = "00";
                                 }
-                    
+
                                 return RichText(
                                   textAlign: TextAlign.center,
                                   text: TextSpan(
@@ -454,10 +555,14 @@ class _DueloPageState extends State<DueloPage> {
                                         TextSpan(
                                           text: zeros,
                                           style: const TextStyle(
-                                            
                                             fontSize: 40,
                                             fontWeight: FontWeight.bold,
-                                            color: Color.fromARGB(255, 63, 63, 63), // 👈 muda a cor aqui dos zeros provisórios
+                                            color: Color.fromARGB(
+                                              255,
+                                              63,
+                                              63,
+                                              63,
+                                            ), // 👈 muda a cor aqui dos zeros provisórios
                                           ),
                                         ),
                                     ],
@@ -466,13 +571,11 @@ class _DueloPageState extends State<DueloPage> {
                               },
                             ),
                           ),
-                    
                         ),
-                    
-                        const SizedBox(height: 10,),
-                        
+
+                        const SizedBox(height: 10),
+
                         //===================================================================================== TECLADO NUMERICO ============================
-                    
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -487,27 +590,28 @@ class _DueloPageState extends State<DueloPage> {
                                   // final espacamentoTotal = 8 * 2;
                                   // Largura disponível por botão
                                   // final larguraBotao = (larguraTotal - espacamentoTotal) / 3;
-                    
+
                                   return Wrap(
                                     spacing: 8,
                                     runSpacing: 8,
-                                    children: botoes.map((botao) {
-                                      return SizedBox(
-                                        width: 80,
-                                        height: 70,
-                                        child: BotaoNumeroWidget(
-                                          onPressed: botao['acao'], 
-                                          texto: botao['texto'],
-                                        ),
-                                      );
-                                    }).toList(),
+                                    children:
+                                        botoes.map((botao) {
+                                          return SizedBox(
+                                            width: 80,
+                                            height: 70,
+                                            child: BotaoNumeroWidget(
+                                              onPressed: botao['acao'],
+                                              texto: botao['texto'],
+                                            ),
+                                          );
+                                        }).toList(),
                                   );
                                 },
                               ),
                             ),
-                    
+
                             const SizedBox(width: 12),
-                    
+
                             // Coluna da direita com botões lógicos (2 colunas)
                             SizedBox(
                               width: 72,
@@ -520,7 +624,12 @@ class _DueloPageState extends State<DueloPage> {
                                     height: 60,
                                     child: BotaoNumeroWidget(
                                       texto: "C",
-                                      cor: const Color.fromARGB(255, 216, 182, 119),
+                                      cor: const Color.fromARGB(
+                                        255,
+                                        216,
+                                        182,
+                                        119,
+                                      ),
                                       onPressed: limparValorDigitado,
                                     ),
                                   ),
@@ -530,7 +639,12 @@ class _DueloPageState extends State<DueloPage> {
                                     height: 60,
                                     child: BotaoNumeroWidget(
                                       texto: "+",
-                                      cor: const Color.fromARGB(133, 124, 221, 132),
+                                      cor: const Color.fromARGB(
+                                        133,
+                                        124,
+                                        221,
+                                        132,
+                                      ),
                                       onPressed: () => aplicarOperacao(true),
                                     ),
                                   ),
@@ -540,7 +654,12 @@ class _DueloPageState extends State<DueloPage> {
                                     height: 60,
                                     child: BotaoNumeroWidget(
                                       texto: "-",
-                                      cor: const Color.fromARGB(182, 250, 111, 111),
+                                      cor: const Color.fromARGB(
+                                        182,
+                                        250,
+                                        111,
+                                        111,
+                                      ),
                                       onPressed: () => aplicarOperacao(false),
                                     ),
                                   ),
@@ -555,7 +674,7 @@ class _DueloPageState extends State<DueloPage> {
                                     ),
                                   ),
                                   const SizedBox(height: 10),
-                                  
+
                                   // SizedBox(
                                   //   width: double.infinity,
                                   //   height: 60,
@@ -567,21 +686,23 @@ class _DueloPageState extends State<DueloPage> {
                                   SizedBox(
                                     width: double.infinity,
                                     height: 60,
-                                    child: BotaoAtualizarWidget(onRefresh: resetarHps)
+                                    child: BotaoAtualizarWidget(
+                                      onRefresh: resetarHps,
+                                    ),
                                   ),
                                 ],
                               ),
                             ),
                           ],
                         ),
-                        SizedBox(height: 10,),
-                    
+                        SizedBox(height: 10),
+
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
-                          children: [ 
-          //#################################################################################################
-          //#################################################################################################
-          //#################################################################################################
+                          children: [
+                            //#################################################################################################
+                            //#################################################################################################
+                            //#################################################################################################
                             ElevatedButton(
                               onPressed: _abrirSorte,
                               style: ElevatedButton.styleFrom(
@@ -596,16 +717,16 @@ class _DueloPageState extends State<DueloPage> {
                                 size: 28,
                                 color: Colors.white,
                               ),
-                            //   child: Image.asset(
-                            //     'assets/icons/historico.png',
-                            //     width: 28,
-                            //     height: 28,
-                            //     color: Colors.white,
-                            //   ),
-                            ), 
-                            SizedBox(width: 10,),
+                              //   child: Image.asset(
+                              //     'assets/icons/historico.png',
+                              //     width: 28,
+                              //     height: 28,
+                              //     color: Colors.white,
+                              //   ),
+                            ),
+                            SizedBox(width: 10),
                             ElevatedButton(
-                              onPressed: ()=> _abrirCalculadora(context),  
+                              onPressed: () => _abrirCalculadora(context),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.indigo,
                                 shape: RoundedRectangleBorder(
@@ -619,8 +740,8 @@ class _DueloPageState extends State<DueloPage> {
                                 height: 28,
                                 color: Colors.white,
                               ),
-                            ), 
-                            SizedBox(width: 10,),
+                            ),
+                            SizedBox(width: 10),
                             ElevatedButton(
                               onPressed: _historico,
                               style: ElevatedButton.styleFrom(
@@ -636,8 +757,8 @@ class _DueloPageState extends State<DueloPage> {
                                 height: 28,
                                 color: Colors.white,
                               ),
-                            ), 
-                            SizedBox(width: 10,),
+                            ),
+                            SizedBox(width: 10),
                             ElevatedButton(
                               onPressed: _abrirCartas,
                               style: ElevatedButton.styleFrom(
@@ -654,23 +775,32 @@ class _DueloPageState extends State<DueloPage> {
                                 color: Colors.white,
                               ),
                             ),
-                          ]
+                          ],
                         ),
                       ],
                     ),
                   ),
                 ),
-              )
+              ),
             ),
           ),
           IgnorePointer(
             ignoring: true,
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 500),
-              color: _telaEscurecida
-                ? Colors.black.withValues(alpha: 0.75)
-                : Colors.transparent,
+              color:
+                  _telaEscurecida
+                      ? Colors.black.withValues(alpha: 0.75)
+                      : Colors.transparent,
             ),
+          ),
+          MenuLateralWidget(
+            aberto: _menuAberto,
+            onAlternar: _alternarMenu,
+            onFechar: _fecharMenu,
+            onListaCartas: _abrirCartas,
+            onMeusDecks: _abrirMeusDecks,
+            onMinhasCartas: _abrirMinhasCartas,
           ),
         ],
       ),
